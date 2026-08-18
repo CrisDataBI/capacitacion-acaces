@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel administrativo — ACACES</title>
+<link rel="stylesheet" href="../css/design-system.css">
+<style>
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin: 1.6rem 0 2.2rem; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  .kpi-card .kpi-value { font-family: var(--font-display); font-size: 1.8rem; }
+  .kpi-card .kpi-label { font-size: 0.78rem; color: var(--muted); }
+  .toolbar { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+  table.roster { width: 100%; border-collapse: collapse; font-size: 0.86rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  table.roster th, table.roster td { text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--border); }
+  table.roster thead th { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; color: var(--muted); background: var(--surface-2); }
+  table.roster tbody tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: flex-start; justify-content: center; padding: 3rem 1rem; z-index: 50; overflow-y: auto; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 1.6rem; max-width: 640px; width: 100%; }
+  .modal h3 { margin-top: 0; }
+  .modal textarea { width: 100%; min-height: 140px; font-family: var(--font-mono); font-size: 0.82rem; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; }
+  .import-results { margin-top: 1.2rem; max-height: 280px; overflow-y: auto; }
+  .import-results table { width: 100%; font-size: 0.82rem; border-collapse: collapse; }
+  .import-results th, .import-results td { padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); text-align: left; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="mark"></span> ACACES · Panel administrativo</a>
+    <span class="crumbs">Riesgos + Cumplimiento</span>
+  </header>
+
+  <main class="wrap">
+    <p class="lesson-kicker">Módulo 1 · Gestión de Riesgos</p>
+    <h1 class="lesson-title">Panel administrativo</h1>
+    <p class="lesson-dek">Progreso y evidencia de cumplimiento de todo el personal inscrito.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-value" id="kpi-total">—</div><div class="kpi-label">Inscritos</div></div>
+      <div class="kpi-card"><div class="kpi-value" id="kpi-progreso">—</div><div class="kpi-label">En progreso</div></div>
+      <div class="kpi-card"><div class="kpi-value" id="kpi-aprobado">—</div><div class="kpi-label">Aprobados</div></div>
+      <div class="kpi-card"><div class="kpi-value" id="kpi-vencido">—</div><div class="kpi-label">Vencidos</div></div>
+      <div class="kpi-card"><div class="kpi-value" id="kpi-pendiente">—</div><div class="kpi-label">Sin iniciar</div></div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-primary" id="btn-import">Importar empleados (CSV)</button>
+      <a class="btn btn-ghost" href="/api/admin/reportes.csv">Exportar reporte CSV</a>
+    </div>
+
+    <div class="table-wrap">
+      <table class="roster">
+        <thead>
+          <tr><th>Nombre</th><th>Cargo</th><th>Área</th><th>Usuario</th><th>Estado</th><th>Lecciones</th><th>Fecha límite</th></tr>
+        </thead>
+        <tbody id="roster-body">
+          <tr><td colspan="7" style="color:var(--muted);">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="import-modal">
+    <div class="modal">
+      <h3>Importar empleados</h3>
+      <p style="font-size:0.86rem; color:var(--muted);">Pega el CSV con columnas <span class="mono">nombre,cargo,area,correo,identificador</span> (una fila por empleado). <span class="mono">correo</span> o <span class="mono">identificador</span> es obligatorio — usa <span class="mono">identificador</span> (código de empleado o DUI) para personal sin correo.</p>
+      <textarea id="csv-input" placeholder="nombre,cargo,area,correo,identificador
+María Hernández,Analista,Riesgos,maria.hernandez@acaces.com.sv,
+José Pérez,Vigilancia,Seguridad,,V-00123"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btn-cancel-import">Cancelar</button>
+        <button class="btn btn-primary" id="btn-do-import">Importar</button>
+      </div>
+      <div class="import-results" id="import-results" hidden></div>
+    </div>
+  </div>
+
+  <script src="../js/progress.js"></script>
+  <script>
+    async function cargarRoster() {
+      const res = await fetch('/api/admin/usuarios');
+      if (res.status === 401) { window.location.href = '/login.html'; return; }
+      const { usuarios } = await res.json();
+
+      const counts = { total: usuarios.length, en_progreso: 0, aprobado: 0, vencido: 0, sin_iniciar: 0 };
+      const body = document.getElementById('roster-body');
+      body.innerHTML = '';
+      usuarios.forEach((u) => {
+        const estado = u.estado || 'sin iniciar';
+        if (estado === 'en_progreso' || estado === 'evaluacion_pendiente') counts.en_progreso++;
+        else if (estado === 'aprobado') counts.aprobado++;
+        else if (estado === 'vencido') counts.vencido++;
+        else counts.sin_iniciar++;
+
+        const tr = document.createElement('tr');
+        const limite = u.fecha_limite ? new Date(u.fecha_limite).toLocaleDateString('es-SV') : '—';
+        tr.innerHTML = `<td>${u.nombre}</td><td>${u.cargo || ''}</td><td>${u.area || ''}</td><td class="mono">${u.usuario}</td>
+          <td><span class="pill ${estado === 'aprobado' ? 'good' : estado === 'vencido' ? 'bad' : 'neutral'}">${estado.replace('_',' ')}</span></td>
+          <td>${u.lecciones_completadas}/7</td><td>${limite}</td>`;
+        body.appendChild(tr);
+      });
+      if (!usuarios.length) body.innerHTML = '<tr><td colspan="7" style="color:var(--muted);">Aún no hay empleados importados.</td></tr>';
+
+      document.getElementById('kpi-total').textContent = counts.total;
+      document.getElementById('kpi-progreso').textContent = counts.en_progreso;
+      document.getElementById('kpi-aprobado').textContent = counts.aprobado;
+      document.getElementById('kpi-vencido').textContent = counts.vencido;
+      document.getElementById('kpi-pendiente').textContent = counts.sin_iniciar;
+    }
+
+    const modal = document.getElementById('import-modal');
+    document.getElementById('btn-import').addEventListener('click', () => modal.classList.add('open'));
+    document.getElementById('btn-cancel-import').addEventListener('click', () => modal.classList.remove('open'));
+
+    document.getElementById('btn-do-import').addEventListener('click', async () => {
+      const csv = document.getElementById('csv-input').value.trim();
+      if (!csv) return;
+      const res = await fetch('/api/admin/usuarios/importar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ csv }),
+      });
+      const data = await res.json();
+      const box = document.getElementById('import-results');
+      box.hidden = false;
+      let html = '';
+      if (data.creados && data.creados.length) {
+        html += '<p><strong>Creados — copia las contraseñas temporales ahora, no se muestran de nuevo:</strong></p><table><thead><tr><th>Nombre</th><th>Usuario</th><th>Contraseña temporal</th></tr></thead><tbody>' +
+          data.creados.map((c) => `<tr><td>${c.nombre}</td><td class="mono">${c.usuario}</td><td class="mono">${c.passwordTemporal}</td></tr>`).join('') + '</tbody></table>';
+      }
+      if (data.actualizados && data.actualizados.length) {
+        html += `<p>${data.actualizados.length} registro(s) ya existían y se actualizaron sus datos (sin cambiar contraseña).</p>`;
+      }
+      if (data.errores && data.errores.length) {
+        html += '<p style="color:var(--bad);"><strong>Errores:</strong></p><ul>' +
+          data.errores.map((e) => `<li>${(e.fila && e.fila.nombre) || '(fila sin nombre)'} — ${e.motivo}</li>`).join('') + '</ul>';
+      }
+      box.innerHTML = html || '<p>No se importó ningún registro.</p>';
+      cargarRoster();
+    });
+
+    cargarRoster();
+  </script>
+</body>
+</html>

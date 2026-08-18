@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Módulo 1 · Gestión de Riesgos — ACACES</title>
+<link rel="stylesheet" href="../css/design-system.css">
+<style>
+  .lesson-list { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.6rem; }
+  .lesson-row {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1rem 1.2rem; text-decoration: none; color: inherit;
+  }
+  .lesson-row .lesson-num {
+    font-family: var(--font-mono); font-size: 0.9rem; color: var(--riesgo);
+    width: 2.4rem; flex: none;
+  }
+  .lesson-row .lesson-info { flex: 1; }
+  .lesson-row .lesson-info h4 { font-family: var(--font-display); font-size: 1.02rem; margin: 0 0 0.2rem; }
+  .lesson-row .lesson-info span { font-size: 0.8rem; color: var(--muted); }
+  .lesson-row .lesson-status { flex: none; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html"><span class="mark"></span> ACACES · Capacitación</a>
+    <span class="crumbs"><a href="../index.html">Inicio</a> / Módulo 1</span>
+  </header>
+
+  <main class="wrap">
+    <p class="lesson-kicker">Módulo 1</p>
+    <h1 class="lesson-title">Gestión de Riesgos</h1>
+    <p class="lesson-dek">Fraude · Reputación · Protección de Información · Continuidad de Negocio. 6 lecciones interactivas antes de la evaluación final del módulo.</p>
+
+    <div class="bar" style="max-width:400px;"><span data-progress-bar style="width:0%"></span></div>
+    <p class="mono" style="font-size:0.82rem; color:var(--muted);"><span data-progress-percent>0%</span> completado</p>
+
+    <div class="lesson-list">
+      <a class="lesson-row" href="leccion-1.html">
+        <span class="lesson-num">01</span>
+        <span class="lesson-info"><h4>Fundamentos de Gestión Integral de Riesgos</h4><span>Qué es el riesgo, tipologías, proceso GIR, marco regulatorio · ~18 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l1">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-2.html">
+        <span class="lesson-num">02</span>
+        <span class="lesson-info"><h4>Riesgo Operacional</h4><span>Procesos, personas, sistemas, externos y las 3 líneas de defensa · ~13 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l2">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-3.html">
+        <span class="lesson-num">03</span>
+        <span class="lesson-info"><h4>Riesgo de Fraude</h4><span>Tipos, señales de alerta, impacto, tu rol y caso práctico · ~32 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l3">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-4.html">
+        <span class="lesson-num">04</span>
+        <span class="lesson-info"><h4>Riesgo Reputacional</h4><span>Fuentes internas/externas y gestión de crisis · ~12 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l4">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-5.html">
+        <span class="lesson-num">05</span>
+        <span class="lesson-info"><h4>Protección de Información</h4><span>Ciberseguridad, clasificación de información, escritorios limpios · ~18 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l5">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-6.html">
+        <span class="lesson-num">06</span>
+        <span class="lesson-info"><h4>Continuidad de Negocio</h4><span>Continuidad, contingencia, recuperación y eventos disruptivos · ~15 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l6">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="cierre.html">
+        <span class="lesson-num">✓</span>
+        <span class="lesson-info"><h4>Cierre del módulo</h4><span>Resumen antes de la evaluación · ~3 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="cierre">Pendiente</span>
+      </a>
+    </div>
+
+    <div class="callout" style="margin-top: 2.5rem;">
+      <span class="callout-tag">Pendiente</span>
+      <p>La evaluación final (15 preguntas del banco existente) todavía no está aquí — falta que nos compartan ese banco para mapearlo a estas 6 lecciones.</p>
+    </div>
+  </main>
+
+  <script src="../js/progress.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L5 · Protección de Información — ACACES</title>
+<link rel="stylesheet" href="../css/design-system.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html"><span class="mark"></span> ACACES · Capacitación</a>
+    <span class="crumbs"><a href="index.html">Módulo 1</a> / Lección 5</span>
+  </header>
+
+  <main class="wrap">
+    <p class="lesson-kicker">Lección 5 de 6</p>
+    <h1 class="lesson-title">Protección de Información</h1>
+    <p class="lesson-dek">Ciberseguridad básica, clasificación de información y escritorios limpios.</p>
+
+    <nav class="progress-dots" aria-label="Progreso del módulo">
+      <a href="leccion-1.html" data-lesson="l1" title="Lección 1"></a>
+      <a href="leccion-2.html" data-lesson="l2" title="Lección 2"></a>
+      <a href="leccion-3.html" data-lesson="l3" title="Lección 3"></a>
+      <a href="leccion-4.html" data-lesson="l4" title="Lección 4"></a>
+      <a href="leccion-5.html" data-lesson="l5" class="is-current" title="Lección 5"></a>
+      <a href="leccion-6.html" data-lesson="l6" title="Lección 6"></a>
+      <a href="cierre.html" data-lesson="cierre" title="Cierre"></a>
+    </nav>
+
+    <section class="section">
+      <h2>Ciberseguridad — lo básico que todos deben saber</h2>
+      <p class="lede">Toca cada tarjeta para ver la regla completa.</p>
+      <div class="flip-grid" data-component="flip-cards">
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Phishing</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Correos fraudulentos que simulan ser de tu banco, proveedor o RRHH. Nunca hagas clic en enlaces sospechosos ni descargues archivos no solicitados.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Contraseñas</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Mínimo 12 caracteres con mayúsculas, números y símbolos. Cambia cada 90 días. Nunca la misma para sistemas de trabajo y personales.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Verificación</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Activa la autenticación de dos factores (2FA) donde esté disponible. Un segundo factor puede frenar un acceso fraudulento aunque roben tu contraseña.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Correo</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Verifica el remitente real, no solo el nombre. Desconfía de urgencias, amenazas o promesas inusuales. Ante la duda, llama directamente a quien supuestamente envió el mensaje.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Respaldos</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>No almacenes información institucional en dispositivos personales ni en la nube personal. Usa las herramientas aprobadas por la institución.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Incidentes</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Si sospechas que fuiste víctima de un ataque o que hay acceso no autorizado, repórtalo de INMEDIATO al área de TI.</p></div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>La información es un activo crítico</h2>
+      <p class="lede">Clasifica cada ejemplo según su nivel.</p>
+      <div class="classify" data-component="classify">
+        <div class="classify-bank">
+          <button class="classify-item" data-answer="confidencial">Datos de socios</button>
+          <button class="classify-item" data-answer="confidencial">Expedientes de crédito</button>
+          <button class="classify-item" data-answer="confidencial">Claves de sistemas</button>
+          <button class="classify-item" data-answer="restringida">Estados financieros</button>
+          <button class="classify-item" data-answer="restringida">Contratos</button>
+          <button class="classify-item" data-answer="restringida">Actas de comité</button>
+          <button class="classify-item" data-answer="interna">Procedimientos operativos</button>
+          <button class="classify-item" data-answer="interna">Manuales</button>
+          <button class="classify-item" data-answer="interna">Comunicados internos</button>
+          <button class="classify-item" data-answer="publica">Tasas publicadas</button>
+          <button class="classify-item" data-answer="publica">Servicios ofrecidos</button>
+          <button class="classify-item" data-answer="publica">Noticias institucionales</button>
+        </div>
+        <div class="classify-zones">
+          <div class="classify-zone" data-zone="confidencial"><h5>Confidencial</h5><div class="zone-drop"></div></div>
+          <div class="classify-zone" data-zone="restringida"><h5>Restringida</h5><div class="zone-drop"></div></div>
+          <div class="classify-zone" data-zone="interna"><h5>Interna</h5><div class="zone-drop"></div></div>
+          <div class="classify-zone" data-zone="publica"><h5>Pública</h5><div class="zone-drop"></div></div>
+        </div>
+      </div>
+      <div class="feedback-banner warn" style="max-width:68ch;">El tratamiento inadecuado de información confidencial puede generar sanciones legales, pérdidas económicas y daño reputacional.</div>
+    </section>
+
+    <section class="section">
+      <h2>Política de escritorios limpios</h2>
+      <p class="lede">¿Correcto o incorrecto? Toca tu respuesta.</p>
+      <div class="checklist" data-component="checklist">
+        <div class="check-row" data-answer="true">
+          <span class="check-text">Bloqueas tu computadora al alejarte de tu puesto, usando Ctrl+L o Windows+L.</span>
+          <div class="check-actions"><button data-value="true">Correcto</button><button data-value="false">Incorrecto</button></div>
+          <p class="check-feedback">Correcto — bloquea tu equipo aunque sea por 2 minutos.</p>
+        </div>
+        <div class="check-row" data-answer="false">
+          <span class="check-text">Dejas expedientes o contratos con datos de socios visibles sobre tu escritorio mientras no estás.</span>
+          <div class="check-actions"><button data-value="true">Correcto</button><button data-value="false">Incorrecto</button></div>
+          <p class="check-feedback">Incorrecto — no dejes expedientes, contratos o datos de socios visibles; guárdalos en el archivo o caja bajo llave.</p>
+        </div>
+        <div class="check-row" data-answer="true">
+          <span class="check-text">Recoges tus impresiones inmediatamente y nunca dejas documentos confidenciales en la bandeja compartida.</span>
+          <div class="check-actions"><button data-value="true">Correcto</button><button data-value="false">Incorrecto</button></div>
+          <p class="check-feedback">Correcto — así se evita la fuga accidental de información en la impresora.</p>
+        </div>
+        <div class="check-row" data-answer="false">
+          <span class="check-text">Escribes tu contraseña en un papel pegado al monitor para no olvidarla.</span>
+          <div class="check-actions"><button data-value="true">Correcto</button><button data-value="false">Incorrecto</button></div>
+          <p class="check-feedback">Incorrecto — nunca escribas tus contraseñas en papel ni las pegues en el monitor; usa un gestor aprobado por la institución.</p>
+        </div>
+        <div class="check-row" data-answer="false">
+          <span class="check-text">Conectas un USB personal a tu computadora de trabajo para pasar unos archivos.</span>
+          <div class="check-actions"><button data-value="true">Correcto</button><button data-value="false">Incorrecto</button></div>
+          <p class="check-feedback">Incorrecto — no conectes USB personales a equipos institucionales, ni uses redes WiFi públicas para acceder a los sistemas.</p>
+        </div>
+        <div class="check-row" data-answer="true">
+          <span class="check-text">Destruyes con trituradora los documentos con datos confidenciales antes de desecharlos.</span>
+          <div class="check-actions"><button data-value="true">Correcto</button><button data-value="false">Incorrecto</button></div>
+          <p class="check-feedback">Correcto — nunca los tires al basurero común.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="lesson-nav">
+      <a class="btn btn-ghost" href="index.html">← Volver al módulo</a>
+      <button class="btn btn-primary" data-mark-complete="l5" data-next="leccion-6.html">Marcar lección como completada →</button>
+    </div>
+  </main>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/interactive.js"></script>
+</body>
+</html>

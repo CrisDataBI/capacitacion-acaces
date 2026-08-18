@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L1 · Fundamentos de GIR — ACACES</title>
+<link rel="stylesheet" href="../css/design-system.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html"><span class="mark"></span> ACACES · Capacitación</a>
+    <span class="crumbs"><a href="index.html">Módulo 1</a> / Lección 1</span>
+  </header>
+
+  <main class="wrap">
+    <p class="lesson-kicker">Lección 1 de 6</p>
+    <h1 class="lesson-title">Fundamentos de Gestión Integral de Riesgos</h1>
+    <p class="lesson-dek">Qué es el riesgo, cómo se clasifica, cómo se gestiona, y bajo qué marco regulatorio opera ACACES.</p>
+
+    <nav class="progress-dots" aria-label="Progreso del módulo">
+      <a href="leccion-1.html" data-lesson="l1" class="is-current" title="Lección 1"></a>
+      <a href="leccion-2.html" data-lesson="l2" title="Lección 2"></a>
+      <a href="leccion-3.html" data-lesson="l3" title="Lección 3"></a>
+      <a href="leccion-4.html" data-lesson="l4" title="Lección 4"></a>
+      <a href="leccion-5.html" data-lesson="l5" title="Lección 5"></a>
+      <a href="leccion-6.html" data-lesson="l6" title="Lección 6"></a>
+      <a href="cierre.html" data-lesson="cierre" title="Cierre"></a>
+    </nav>
+
+    <section class="section">
+      <h2>¿Qué es el riesgo?</h2>
+      <div class="callout normativo">
+        <span class="callout-tag">Definición institucional</span>
+        <p>Probabilidad de ocurrencia de eventos que impacten negativamente los objetivos, la situación financiera o la reputación de la organización.</p>
+      </div>
+      <p class="lede">Todo riesgo se mide en dos ejes: qué tan <strong>probable</strong> es que ocurra, y qué tan <strong>grave</strong> sería si ocurre. Prueba la herramienta con un caso hipotético y observa cómo cambia el nivel resultante.</p>
+
+      <div class="risk-scale" data-component="risk-scale">
+        <div class="scale-axis" data-axis="probabilidad">
+          <h5>¿Con qué frecuencia puede ocurrir?</h5>
+          <div class="scale-options">
+            <button data-value="1">Muy baja</button>
+            <button data-value="2">Baja</button>
+            <button data-value="3">Moderada</button>
+            <button data-value="4">Alta</button>
+            <button data-value="5">Muy alta</button>
+          </div>
+        </div>
+        <div class="scale-axis" data-axis="impacto">
+          <h5>¿Qué tan grave puede llegar a ser?</h5>
+          <div class="scale-options">
+            <button data-value="1">Insignificante</button>
+            <button data-value="2">Menor</button>
+            <button data-value="3">Moderado</button>
+            <button data-value="4">Mayor</button>
+            <button data-value="5">Crítico</button>
+          </div>
+        </div>
+        <div class="scale-result">
+          <span class="scale-result-label">Nivel de riesgo resultante:</span>
+          <span class="scale-result-badge" data-level="">Selecciona ambos ejes</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Principales tipologías de riesgo</h2>
+      <p class="lede">Toca cada tarjeta para ver su definición.</p>
+      <div class="flip-grid" data-component="flip-cards">
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Crédito</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Incumplimiento de pago por parte de los asociados o clientes.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Liquidez</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>No disponer de recursos suficientes para cumplir obligaciones.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Mercado</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Movimientos adversos en tasas de interés o tipos de cambio.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Operacional</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Fallas en procesos, personas, sistemas o eventos externos.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Fraude</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Actos deliberados de engaño que generan pérdidas a la cooperativa.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Reputacional</span><span class="flip-hint">Toca para ver más</span></div>
+            <div class="flip-back"><p>Deterioro de imagen por incumplimiento, escándalos o fallos de servicio.</p></div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Etapas del proceso de gestión de riesgos</h2>
+      <p class="lede">Ordena las 4 etapas con las flechas y verifica.</p>
+      <div class="sequence-wrap" data-component="sequence" data-order="identificar,medir,controlar,monitorear">
+        <ol class="sequence">
+          <li data-key="controlar"><span class="seq-num"></span><span class="seq-text">Controlar — diseñar e implementar acciones que reduzcan probabilidad o impacto.</span><span class="seq-move"><button data-dir="up">↑</button><button data-dir="down">↓</button></span></li>
+          <li data-key="identificar"><span class="seq-num"></span><span class="seq-text">Identificar — reconocer todos los eventos potenciales que podrían afectar la institución.</span><span class="seq-move"><button data-dir="up">↑</button><button data-dir="down">↓</button></span></li>
+          <li data-key="monitorear"><span class="seq-num"></span><span class="seq-text">Monitorear — seguimiento continuo y comunicación a todas las partes involucradas.</span><span class="seq-move"><button data-dir="up">↑</button><button data-dir="down">↓</button></span></li>
+          <li data-key="medir"><span class="seq-num"></span><span class="seq-text">Medir — evaluar probabilidad e impacto de cada riesgo identificado.</span><span class="seq-move"><button data-dir="up">↑</button><button data-dir="down">↓</button></span></li>
+        </ol>
+        <button class="btn btn-ghost btn-sm sequence-check">Verificar orden</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Marco regulatorio (El Salvador)</h2>
+      <div class="callout normativo">
+        <span class="callout-tag">Recuadro normativo — textual</span>
+        <p><strong>NCB-022</strong> — Normas para clasificar los activos de riesgo crediticio<br>
+        <strong>NPB4-49</strong> — Normas para la gestión del riesgo crediticio y de concentración de crédito<br>
+        <strong>NRP-05</strong> — Normas técnicas para la gestión del riesgo de liquidez<br>
+        <strong>NRP-20</strong> — Normas técnicas para la gestión integral de riesgos de las entidades financieras<br>
+        <strong>NRP-23</strong> — Normas técnicas para la gestión de la seguridad de la información<br>
+        <strong>NRP-24</strong> — Normas técnicas para el sistema de gestión de la continuidad del negocio<br>
+        <strong>NRP-41</strong> — Normas técnicas sobre el procedimiento para la recolección de información del sistema central de riesgos<br>
+        <strong>NRP-42</strong> — Normas técnicas para la gestión del riesgo operacional en las entidades financieras</p>
+      </div>
+    </section>
+
+    <div class="lesson-nav">
+      <a class="btn btn-ghost" href="index.html">← Volver al módulo</a>
+      <button class="btn btn-primary" data-mark-complete="l1" data-next="leccion-2.html">Marcar lección como completada →</button>
+    </div>
+  </main>
+
+  <script src="../js/progress.js"></script>
+  <script src="../js/interactive.js"></script>
+</body>
+</html>
