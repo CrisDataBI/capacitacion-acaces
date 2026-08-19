@@ -6,11 +6,27 @@
 <title>Ingresar — Capacitación ACACES</title>
 <link rel="stylesheet" href="css/design-system.css">
 <style>
-  .login-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+  body {
+    background: linear-gradient(115deg, #2c1547 0%, var(--laft) 32%, #146873 66%, var(--accent-brand) 100%);
+    position: relative;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  body::before {
+    content: ""; position: absolute; left: -14%; top: -18%;
+    width: min(70vw, 820px); aspect-ratio: 1;
+    background: url('img/acaces-icono-blanco.png') no-repeat center / contain;
+    opacity: 0.14; pointer-events: none;
+  }
+  body::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(-55deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 16px);
+    mask-image: linear-gradient(to right, transparent 0%, transparent 40%, black 100%);
+    pointer-events: none;
+  }
+  .login-shell { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.8rem; padding: 2rem 1.5rem; position: relative; z-index: 1; }
+  .login-logo { height: 108px; width: auto; display: block; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.25)); }
   .login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem 1.8rem; box-shadow: var(--shadow); }
-  .login-brand { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.6rem; }
-  .login-brand .mark { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--accent-brand), var(--laft)); }
-  .login-brand span { font-family: var(--font-display); font-size: 1.15rem; }
   .field { margin-bottom: 1.1rem; }
   .field label { display: block; font-family: var(--font-mono); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.4rem; }
   .field input { width: 100%; padding: 0.65rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: var(--bg); color: var(--ink); }
@@ -22,8 +38,8 @@
 </head>
 <body>
   <div class="login-shell">
+    <img src="img/acaces-logo-blanco.png" alt="ACACES – Cooperativa Financiera Empresarial" class="login-logo">
     <div class="login-card">
-      <div class="login-brand"><span class="mark"></span><span>ACACES · Capacitación</span></div>
       <h1 style="font-size:1.3rem; margin-bottom:0.3rem;">Capacitación anual 2026</h1>
       <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1.4rem;">Ingresa con el usuario y la contraseña que te compartió el Área de Riesgos.</p>
 

@@ -103,7 +103,7 @@ app.get('/api/me', auth.requireAuth, async (req, res) => {
   try {
     const uid = req.session.uid;
     const { rows: urows } = await db.query(
-      'select id, nombre, cargo, area, rol, debe_cambiar_password from usuarios where id=$1',
+      'select id, nombre, cargo, area, rol, segmento, debe_cambiar_password from usuarios where id=$1',
       [uid]
     );
     const user = urows[0];
@@ -132,6 +132,7 @@ app.get('/api/me', auth.requireAuth, async (req, res) => {
       cargo: user.cargo,
       area: user.area,
       rol: user.rol,
+      segmento: user.segmento,
       debeCambiarPassword: user.debe_cambiar_password,
       progreso,
       estado,
@@ -179,7 +180,7 @@ app.post('/api/progreso/:leccion', auth.requireAuth, async (req, res) => {
 app.get('/api/admin/usuarios', auth.requireAdmin, async (req, res) => {
   try {
     const { rows } = await db.query(`
-      select u.id, u.nombre, u.cargo, u.area, u.correo, u.usuario, u.activo,
+      select u.id, u.nombre, u.cargo, u.area, u.correo, u.usuario, u.activo, u.segmento,
              i.estado, i.fecha_inscripcion, i.fecha_limite,
              coalesce((select count(*) from progreso_leccion pl where pl.inscripcion_id = i.id), 0) as lecciones_completadas
       from usuarios u
@@ -209,20 +210,24 @@ app.post('/api/admin/usuarios/importar', auth.requireAdmin, async (req, res) => 
       const identificador = (fila.identificador || '').trim().toLowerCase();
       const cargo = fila.cargo || '';
       const area = fila.area || '';
+      const segmentoRaw = (fila.segmento || '').trim().toLowerCase();
+      const segmento = ['negocios', 'administrativo'].includes(segmentoRaw) ? segmentoRaw : null;
 
       if (!nombre) { errores.push({ fila, motivo: 'Falta nombre' }); continue; }
       const usuarioLogin = correo || identificador;
       if (!usuarioLogin) { errores.push({ fila, motivo: 'Falta correo e identificador (uno de los dos es obligatorio)' }); continue; }
+      if (segmentoRaw && !segmento) { errores.push({ fila, motivo: 'Segmento debe ser "negocios" o "administrativo"' }); continue; }
 
       const passwordTemporal = auth.generarPasswordTemporal();
       const hash = auth.hashPassword(passwordTemporal);
       try {
         const r = await db.query(
-          `insert into usuarios (nombre, cargo, area, correo, usuario, password_hash, rol, debe_cambiar_password)
-           values ($1,$2,$3,$4,$5,$6,'empleado', true)
-           on conflict (usuario) do update set nombre = excluded.nombre, cargo = excluded.cargo, area = excluded.area
+          `insert into usuarios (nombre, cargo, area, correo, usuario, password_hash, rol, segmento, debe_cambiar_password)
+           values ($1,$2,$3,$4,$5,$6,'empleado', $7, true)
+           on conflict (usuario) do update set nombre = excluded.nombre, cargo = excluded.cargo, area = excluded.area,
+             segmento = coalesce(excluded.segmento, usuarios.segmento)
            returning (xmax = 0) as inserted`,
-          [nombre, cargo, area, correo || null, usuarioLogin, hash]
+          [nombre, cargo, area, correo || null, usuarioLogin, hash, segmento]
         );
         if (r.rows[0].inserted) creados.push({ nombre, usuario: usuarioLogin, passwordTemporal });
         else actualizados.push({ nombre, usuario: usuarioLogin });
@@ -250,7 +255,7 @@ app.post('/api/admin/usuarios/:id/admin', auth.requireAdmin, async (req, res) =>
 app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
   try {
     const { rows } = await db.query(`
-      select u.nombre, u.cargo, u.area, u.correo, u.usuario,
+      select u.nombre, u.cargo, u.area, u.correo, u.usuario, u.segmento,
              i.estado, i.fecha_inscripcion, i.fecha_limite,
              coalesce((select count(*) from progreso_leccion pl where pl.inscripcion_id = i.id), 0) as lecciones_completadas
       from usuarios u
@@ -259,9 +264,9 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
       where u.rol = 'empleado'
       order by u.nombre
     `);
-    const header = ['Nombre', 'Cargo', 'Área', 'Correo', 'Usuario', 'Estado', 'Fecha inscripción', 'Fecha límite', 'Lecciones completadas (de 7)'];
+    const header = ['Nombre', 'Cargo', 'Área', 'Correo', 'Usuario', 'Segmento', 'Estado', 'Fecha inscripción', 'Fecha límite', 'Lecciones completadas (de 7)'];
     const body = rows.map((r) => [
-      r.nombre, r.cargo, r.area, r.correo, r.usuario,
+      r.nombre, r.cargo, r.area, r.correo, r.usuario, r.segmento || '',
       r.estado || 'pendiente',
       r.fecha_inscripcion ? new Date(r.fecha_inscripcion).toLocaleDateString('es-SV') : '',
       r.fecha_limite ? new Date(r.fecha_limite).toLocaleDateString('es-SV') : '',
@@ -281,17 +286,40 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
    Paginas estaticas + proteccion de rutas
    ============================================================ */
 
-function pageGuard(req, res, next) {
-  const abiertas = ['/login.html', '/favicon.ico'];
-  if (abiertas.includes(req.path) || req.path.startsWith('/css') || req.path.startsWith('/js')) {
-    return next();
+async function pageGuard(req, res, next) {
+  try {
+    const abiertas = ['/login.html', '/favicon.ico'];
+    if (abiertas.includes(req.path) || req.path.startsWith('/css') || req.path.startsWith('/js')) {
+      return next();
+    }
+    const session = auth.readSession(req);
+    if (!session) return res.redirect('/login.html');
+
+    if (req.path.startsWith('/admin') && session.rol !== 'administrador') {
+      return res.status(403).send('<h1>403</h1><p>Esta sección es solo para administradores.</p>');
+    }
+
+    // Modulo 2 (LA/FT) tiene dos pistas separadas por segmento (Negocios /
+    // Administrativo). Cada quien solo puede entrar a la suya.
+    if (req.path.startsWith('/modulo-laft/negocios') || req.path.startsWith('/modulo-laft/administrativo')) {
+      const rutaSegmento = req.path.startsWith('/modulo-laft/negocios') ? 'negocios' : 'administrativo';
+      if (session.rol !== 'administrador') {
+        const { rows } = await db.query('select segmento from usuarios where id=$1', [session.uid]);
+        const segmentoUsuario = rows[0] && rows[0].segmento;
+        if (!segmentoUsuario) {
+          return res.status(403).send('<h1>403</h1><p>Tu cuenta todavía no tiene una pista de LA/FT asignada. Contacta al Área de Riesgos o a Cumplimiento.</p>');
+        }
+        if (segmentoUsuario !== rutaSegmento) {
+          return res.redirect('/modulo-laft/' + segmentoUsuario + '/index.html');
+        }
+      }
+    }
+
+    next();
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Error del servidor');
   }
-  const session = auth.readSession(req);
-  if (!session) return res.redirect('/login.html');
-  if (req.path.startsWith('/admin') && session.rol !== 'administrador') {
-    return res.status(403).send('<h1>403</h1><p>Esta sección es solo para administradores.</p>');
-  }
-  next();
 }
 
 app.use(pageGuard);

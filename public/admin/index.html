@@ -29,7 +29,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="index.html"><span class="mark"></span> ACACES · Panel administrativo</a>
+    <a class="brand" href="index.html"><img src="/img/acaces-icono-blanco.png" alt="" class="brand-icon"><img src="/img/acaces-wordmark-blanco.png" alt="ACACES" class="brand-word"></a>
     <span class="crumbs">Riesgos + Cumplimiento</span>
   </header>
 
@@ -54,10 +54,10 @@
     <div class="table-wrap">
       <table class="roster">
         <thead>
-          <tr><th>Nombre</th><th>Cargo</th><th>Área</th><th>Usuario</th><th>Estado</th><th>Lecciones</th><th>Fecha límite</th></tr>
+          <tr><th>Nombre</th><th>Cargo</th><th>Área</th><th>Usuario</th><th>Segmento</th><th>Estado</th><th>Lecciones</th><th>Fecha límite</th></tr>
         </thead>
         <tbody id="roster-body">
-          <tr><td colspan="7" style="color:var(--muted);">Cargando…</td></tr>
+          <tr><td colspan="8" style="color:var(--muted);">Cargando…</td></tr>
         </tbody>
       </table>
     </div>
@@ -66,10 +66,11 @@
   <div class="modal-backdrop" id="import-modal">
     <div class="modal">
       <h3>Importar empleados</h3>
-      <p style="font-size:0.86rem; color:var(--muted);">Pega el CSV con columnas <span class="mono">nombre,cargo,area,correo,identificador</span> (una fila por empleado). <span class="mono">correo</span> o <span class="mono">identificador</span> es obligatorio — usa <span class="mono">identificador</span> (código de empleado o DUI) para personal sin correo.</p>
-      <textarea id="csv-input" placeholder="nombre,cargo,area,correo,identificador
-María Hernández,Analista,Riesgos,maria.hernandez@acaces.com.sv,
-José Pérez,Vigilancia,Seguridad,,V-00123"></textarea>
+      <p style="font-size:0.86rem; color:var(--muted);">Pega el CSV con columnas <span class="mono">nombre,cargo,area,correo,identificador,segmento</span> (una fila por empleado). <span class="mono">correo</span> o <span class="mono">identificador</span> es obligatorio — usa <span class="mono">identificador</span> (código de empleado o DUI) para personal sin correo. <span class="mono">segmento</span> es opcional (<span class="mono">negocios</span> o <span class="mono">administrativo</span>) y define su acceso al Módulo 2 · LA/FT — se puede dejar vacío y asignar después.</p>
+      <textarea id="csv-input" placeholder="nombre,cargo,area,correo,identificador,segmento
+María Hernández,Analista,Riesgos,maria.hernandez@acaces.com.sv,,administrativo
+José Pérez,Vigilancia,Seguridad,,V-00123,administrativo
+Ana López,Ejecutiva de Negocios,Negocios Olimpica,ana.lopez@acaces.com.sv,,negocios"></textarea>
       <div class="modal-actions">
         <button class="btn btn-ghost" id="btn-cancel-import">Cancelar</button>
         <button class="btn btn-primary" id="btn-do-import">Importar</button>
@@ -97,12 +98,14 @@ José Pérez,Vigilancia,Seguridad,,V-00123"></textarea>
 
         const tr = document.createElement('tr');
         const limite = u.fecha_limite ? new Date(u.fecha_limite).toLocaleDateString('es-SV') : '—';
+        const segmentoLabel = u.segmento ? (u.segmento === 'negocios' ? 'Negocios' : 'Administrativo') : 'Sin asignar';
         tr.innerHTML = `<td>${u.nombre}</td><td>${u.cargo || ''}</td><td>${u.area || ''}</td><td class="mono">${u.usuario}</td>
+          <td><span class="pill ${u.segmento ? 'neutral' : 'bad'}">${segmentoLabel}</span></td>
           <td><span class="pill ${estado === 'aprobado' ? 'good' : estado === 'vencido' ? 'bad' : 'neutral'}">${estado.replace('_',' ')}</span></td>
           <td>${u.lecciones_completadas}/7</td><td>${limite}</td>`;
         body.appendChild(tr);
       });
-      if (!usuarios.length) body.innerHTML = '<tr><td colspan="7" style="color:var(--muted);">Aún no hay empleados importados.</td></tr>';
+      if (!usuarios.length) body.innerHTML = '<tr><td colspan="8" style="color:var(--muted);">Aún no hay empleados importados.</td></tr>';
 
       document.getElementById('kpi-total').textContent = counts.total;
       document.getElementById('kpi-progreso').textContent = counts.en_progreso;

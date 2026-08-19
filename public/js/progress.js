@@ -8,9 +8,9 @@
     const topbar = document.querySelector('.topbar');
     if (!topbar) return;
     const box = document.createElement('div');
-    box.style.cssText = 'display:flex; align-items:center; gap:0.8rem; font-family:var(--font-mono); font-size:0.78rem; color:var(--muted);';
+    box.style.cssText = 'display:flex; align-items:center; gap:0.8rem; font-family:var(--font-mono); font-size:0.78rem; color:rgba(255,255,255,0.85); position:relative; z-index:1;';
     box.innerHTML = `<span>${me ? 'Hola, ' + me.nombre.split(' ')[0] : ''}</span>` +
-      '<button type="button" id="acaces-logout" style="background:none;border:1px solid var(--border);border-radius:6px;padding:0.3rem 0.7rem;cursor:pointer;font:inherit;color:inherit;">Salir</button>';
+      '<button type="button" id="acaces-logout" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.35);border-radius:6px;padding:0.3rem 0.7rem;cursor:pointer;font:inherit;color:#fff;">Salir</button>';
     topbar.appendChild(box);
     document.getElementById('acaces-logout').addEventListener('click', async () => {
       await fetch('/api/logout', { method: 'POST' });

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Módulo 2 · LA/FT — ACACES</title>
+<link rel="stylesheet" href="../css/design-system.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html"><img src="/img/acaces-icono-blanco.png" alt="" class="brand-icon"><img src="/img/acaces-wordmark-blanco.png" alt="ACACES" class="brand-word"></a>
+    <span class="crumbs">Módulo 2</span>
+  </header>
+  <main class="wrap narrow">
+    <p class="lesson-kicker">Redirigiendo…</p>
+    <h1 class="lesson-title">Un momento</h1>
+    <p class="lesson-dek">Te estamos llevando a la capacitación que corresponde a tu área.</p>
+  </main>
+  <script src="../js/progress.js"></script>
+  <script>
+    (async () => {
+      const res = await fetch('/api/me');
+      if (res.status === 401) { window.location.href = '/login.html'; return; }
+      const me = await res.json();
+      if (me.rol === 'administrador') { window.location.href = 'negocios/index.html'; return; }
+      if (me.segmento === 'negocios') window.location.href = 'negocios/index.html';
+      else if (me.segmento === 'administrativo') window.location.href = 'administrativo/index.html';
+      else document.querySelector('main').innerHTML =
+        '<p class="lesson-kicker">Sin pista asignada</p><h1 class="lesson-title">Todavía no tienes acceso al Módulo 2</h1><p class="lesson-dek">Tu cuenta no tiene asignada una pista de LA/FT (Negocios o Administrativo). Contacta al Área de Riesgos o a Cumplimiento.</p>';
+    })();
+  </script>
+</body>
+</html>
