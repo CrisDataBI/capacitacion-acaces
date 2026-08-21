@@ -54,10 +54,10 @@
     <div class="table-wrap">
       <table class="roster">
         <thead>
-          <tr><th>Nombre</th><th>Cargo</th><th>Área</th><th>Usuario</th><th>Segmento</th><th>Estado</th><th>Lecciones</th><th>Fecha límite</th></tr>
+          <tr><th>Nombre</th><th>Cargo</th><th>Área</th><th>Segmento</th><th>Riesgos</th><th>LA/FT</th></tr>
         </thead>
         <tbody id="roster-body">
-          <tr><td colspan="8" style="color:var(--muted);">Cargando…</td></tr>
+          <tr><td colspan="6" style="color:var(--muted);">Cargando…</td></tr>
         </tbody>
       </table>
     </div>
@@ -97,15 +97,18 @@ Ana López,Ejecutiva de Negocios,Negocios Olimpica,ana.lopez@acaces.com.sv,,nego
         else counts.sin_iniciar++;
 
         const tr = document.createElement('tr');
-        const limite = u.fecha_limite ? new Date(u.fecha_limite).toLocaleDateString('es-SV') : '—';
         const segmentoLabel = u.segmento ? (u.segmento === 'negocios' ? 'Negocios' : 'Administrativo') : 'Sin asignar';
-        tr.innerHTML = `<td>${u.nombre}</td><td>${u.cargo || ''}</td><td>${u.area || ''}</td><td class="mono">${u.usuario}</td>
+        const laftEstado = u.segmento ? (u.laft_estado || 'sin iniciar') : null;
+        const laftCell = u.segmento
+          ? `<span class="pill ${laftEstado === 'aprobado' ? 'good' : laftEstado === 'vencido' ? 'bad' : 'neutral'}">${laftEstado.replace('_',' ')}</span> ${u.laft_lecciones_completadas}/10`
+          : `<span class="pill bad">Sin pista</span>`;
+        tr.innerHTML = `<td>${u.nombre}</td><td>${u.cargo || ''}</td><td>${u.area || ''}</td>
           <td><span class="pill ${u.segmento ? 'neutral' : 'bad'}">${segmentoLabel}</span></td>
-          <td><span class="pill ${estado === 'aprobado' ? 'good' : estado === 'vencido' ? 'bad' : 'neutral'}">${estado.replace('_',' ')}</span></td>
-          <td>${u.lecciones_completadas}/7</td><td>${limite}</td>`;
+          <td><span class="pill ${estado === 'aprobado' ? 'good' : estado === 'vencido' ? 'bad' : 'neutral'}">${estado.replace('_',' ')}</span> ${u.lecciones_completadas}/7</td>
+          <td>${laftCell}</td>`;
         body.appendChild(tr);
       });
-      if (!usuarios.length) body.innerHTML = '<tr><td colspan="8" style="color:var(--muted);">Aún no hay empleados importados.</td></tr>';
+      if (!usuarios.length) body.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">Aún no hay empleados importados.</td></tr>';
 
       document.getElementById('kpi-total').textContent = counts.total;
       document.getElementById('kpi-progreso').textContent = counts.en_progreso;

@@ -8,7 +8,9 @@ const { parseCSV, rowsToObjects, toCSV } = require('./lib/csv');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
-const LECCIONES_VALIDAS = ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'cierre'];
+const LECCIONES_VALIDAS = ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8', 'l9', 'cierre'];
+const MODULOS_VALIDOS = ['riesgos', 'laft'];
+const SEGMENTOS_VALIDOS = ['negocios', 'administrativo'];
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '2mb' }));
@@ -72,13 +74,26 @@ app.post('/api/cambiar-password', auth.requireAuth, async (req, res) => {
 });
 
 /* ============================================================
-   API - progreso del empleado (Modulo 1, edicion 2026)
+   API - progreso del empleado (Modulo 1 y Modulo 2, edicion 2026)
    ============================================================ */
 
-async function obtenerOCrearInscripcion(usuarioId) {
-  const { rows: ed } = await db.query("select * from ediciones where modulo='riesgos' and anio=2026");
+function leerModuloSegmento(req, usuarioSegmento) {
+  const modulo = MODULOS_VALIDOS.includes(req.query.modulo) ? req.query.modulo : 'riesgos';
+  let segmento = null;
+  if (modulo === 'laft') {
+    segmento = SEGMENTOS_VALIDOS.includes(req.query.segmento) ? req.query.segmento : usuarioSegmento;
+  }
+  return { modulo, segmento };
+}
+
+async function obtenerOCrearInscripcion(usuarioId, modulo, segmento) {
+  const params = [modulo];
+  let sql = 'select * from ediciones where modulo=$1 and anio=2026';
+  if (segmento) { sql += ' and segmento_objetivo=$2'; params.push(segmento); }
+  else { sql += ' and segmento_objetivo is null'; }
+  const { rows: ed } = await db.query(sql, params);
   const edicion = ed[0];
-  if (!edicion) throw new Error('No existe la edicion riesgos-2026. Corre db/schema.sql en Supabase.');
+  if (!edicion) throw new Error(`No existe la edicion ${modulo}${segmento ? '/' + segmento : ''}-2026. Corre las migraciones en Supabase.`);
 
   const { rows: existente } = await db.query(
     'select * from inscripciones where usuario_id=$1 and edicion_id=$2',
@@ -94,7 +109,7 @@ async function obtenerOCrearInscripcion(usuarioId) {
   );
   await db.query(
     'insert into eventos_trazabilidad (usuario_id, tipo_evento, detalle) values ($1,$2,$3)',
-    [usuarioId, 'inscripcion', JSON.stringify({ edicion: 'riesgos-2026' })]
+    [usuarioId, 'inscripcion', JSON.stringify({ edicion: `${modulo}${segmento ? '-' + segmento : ''}-2026` })]
   );
   return { inscripcion: nueva[0], edicion };
 }
@@ -109,7 +124,8 @@ app.get('/api/me', auth.requireAuth, async (req, res) => {
     const user = urows[0];
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    const { inscripcion } = await obtenerOCrearInscripcion(uid);
+    const { modulo, segmento } = leerModuloSegmento(req, user.segmento);
+    const { inscripcion } = await obtenerOCrearInscripcion(uid, modulo, segmento);
 
     const { rows: prog } = await db.query(
       'select leccion_key from progreso_leccion where inscripcion_id=$1',
@@ -151,7 +167,9 @@ app.post('/api/progreso/:leccion', auth.requireAuth, async (req, res) => {
     if (!LECCIONES_VALIDAS.includes(leccion)) return res.status(400).json({ error: 'Lección inválida' });
 
     const uid = req.session.uid;
-    const { inscripcion } = await obtenerOCrearInscripcion(uid);
+    const { rows: urows } = await db.query('select segmento from usuarios where id=$1', [uid]);
+    const { modulo, segmento } = leerModuloSegmento(req, urows[0] && urows[0].segmento);
+    const { inscripcion } = await obtenerOCrearInscripcion(uid, modulo, segmento);
 
     await db.query(
       `insert into progreso_leccion (inscripcion_id, leccion_key) values ($1,$2)
@@ -182,10 +200,14 @@ app.get('/api/admin/usuarios', auth.requireAdmin, async (req, res) => {
     const { rows } = await db.query(`
       select u.id, u.nombre, u.cargo, u.area, u.correo, u.usuario, u.activo, u.segmento,
              i.estado, i.fecha_inscripcion, i.fecha_limite,
-             coalesce((select count(*) from progreso_leccion pl where pl.inscripcion_id = i.id), 0) as lecciones_completadas
+             coalesce((select count(*) from progreso_leccion pl where pl.inscripcion_id = i.id), 0) as lecciones_completadas,
+             il.estado as laft_estado, il.fecha_limite as laft_fecha_limite,
+             coalesce((select count(*) from progreso_leccion pl2 where pl2.inscripcion_id = il.id), 0) as laft_lecciones_completadas
       from usuarios u
       left join ediciones e on e.modulo = 'riesgos' and e.anio = 2026
       left join inscripciones i on i.usuario_id = u.id and i.edicion_id = e.id
+      left join ediciones el on el.modulo = 'laft' and el.anio = 2026 and el.segmento_objetivo = u.segmento
+      left join inscripciones il on il.usuario_id = u.id and il.edicion_id = el.id
       where u.rol = 'empleado'
       order by u.nombre
     `);
@@ -257,24 +279,35 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
     const { rows } = await db.query(`
       select u.nombre, u.cargo, u.area, u.correo, u.usuario, u.segmento,
              i.estado, i.fecha_inscripcion, i.fecha_limite,
-             coalesce((select count(*) from progreso_leccion pl where pl.inscripcion_id = i.id), 0) as lecciones_completadas
+             coalesce((select count(*) from progreso_leccion pl where pl.inscripcion_id = i.id), 0) as lecciones_completadas,
+             il.estado as laft_estado, il.fecha_limite as laft_fecha_limite,
+             coalesce((select count(*) from progreso_leccion pl2 where pl2.inscripcion_id = il.id), 0) as laft_lecciones_completadas
       from usuarios u
       left join ediciones e on e.modulo = 'riesgos' and e.anio = 2026
       left join inscripciones i on i.usuario_id = u.id and i.edicion_id = e.id
+      left join ediciones el on el.modulo = 'laft' and el.anio = 2026 and el.segmento_objetivo = u.segmento
+      left join inscripciones il on il.usuario_id = u.id and il.edicion_id = el.id
       where u.rol = 'empleado'
       order by u.nombre
     `);
-    const header = ['Nombre', 'Cargo', 'Área', 'Correo', 'Usuario', 'Segmento', 'Estado', 'Fecha inscripción', 'Fecha límite', 'Lecciones completadas (de 7)'];
+    const header = [
+      'Nombre', 'Cargo', 'Área', 'Correo', 'Usuario', 'Segmento',
+      'Estado Riesgos', 'Fecha inscripción Riesgos', 'Fecha límite Riesgos', 'Lecciones Riesgos (de 7)',
+      'Estado LA/FT', 'Fecha límite LA/FT', 'Lecciones LA/FT (de 10)',
+    ];
     const body = rows.map((r) => [
       r.nombre, r.cargo, r.area, r.correo, r.usuario, r.segmento || '',
       r.estado || 'pendiente',
       r.fecha_inscripcion ? new Date(r.fecha_inscripcion).toLocaleDateString('es-SV') : '',
       r.fecha_limite ? new Date(r.fecha_limite).toLocaleDateString('es-SV') : '',
       r.lecciones_completadas || 0,
+      r.laft_estado || 'pendiente',
+      r.laft_fecha_limite ? new Date(r.laft_fecha_limite).toLocaleDateString('es-SV') : '',
+      r.laft_lecciones_completadas || 0,
     ]);
     const csv = toCSV(header, body);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', 'attachment; filename="reporte-modulo1-riesgos.csv"');
+    res.setHeader('Content-Disposition', 'attachment; filename="reporte-capacitacion-anual.csv"');
     res.send('﻿' + csv);
   } catch (e) {
     console.error(e);

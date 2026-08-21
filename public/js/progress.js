@@ -18,8 +18,13 @@
     });
   }
 
+  const MODULO = document.body.dataset.modulo || 'riesgos';
+  const SEGMENTO = document.body.dataset.segmento || '';
+  const TOTAL_LECCIONES = { riesgos: 7, laft: 10 };
+  const qs = 'modulo=' + MODULO + (SEGMENTO ? '&segmento=' + SEGMENTO : '');
+
   async function fetchMe() {
-    const res = await fetch('/api/me');
+    const res = await fetch('/api/me?' + qs);
     if (res.status === 401) {
       window.location.href = '/login.html';
       return null;
@@ -38,7 +43,7 @@
     });
 
     const done = Object.keys(d).filter((k) => d[k]).length;
-    const total = 7; // l1..l6 + cierre
+    const total = TOTAL_LECCIONES[MODULO] || 7;
     const percent = Math.round((done / total) * 100);
 
     document.querySelectorAll('[data-progress-percent]').forEach((el) => { el.textContent = percent + '%'; });
@@ -79,7 +84,7 @@
       markBtn.addEventListener('click', async () => {
         markBtn.disabled = true;
         const leccion = markBtn.dataset.markComplete;
-        const res = await fetch('/api/progreso/' + leccion, { method: 'POST' });
+        const res = await fetch('/api/progreso/' + leccion + '?' + qs, { method: 'POST' });
         if (res.ok) {
           window.location.href = markBtn.dataset.next;
         } else {
