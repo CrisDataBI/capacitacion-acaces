@@ -31,6 +31,8 @@
   function applyProgressToDom(me) {
     const d = me.progreso || {};
 
+    document.querySelectorAll('[data-user-name]').forEach((el) => { el.textContent = me.nombre.split(' ')[0]; });
+
     document.querySelectorAll('.progress-dots a[data-lesson]').forEach((dot) => {
       if (d[dot.dataset.lesson]) dot.classList.add('is-done');
     });
@@ -53,7 +55,11 @@
     document.querySelectorAll('[data-fecha-limite]').forEach((el) => {
       el.textContent = new Date(me.fechaLimite).toLocaleDateString('es-SV', { day: 'numeric', month: 'long', year: 'numeric' });
     });
-    document.querySelectorAll('[data-estado]').forEach((el) => { el.textContent = me.estado; });
+    const ESTADOS = {
+      pendiente: 'Pendiente', en_progreso: 'En progreso', evaluacion_pendiente: 'Evaluación pendiente',
+      aprobado: 'Aprobado', reprobado: 'Reprobado', vencido: 'Vencido',
+    };
+    document.querySelectorAll('[data-estado]').forEach((el) => { el.textContent = ESTADOS[me.estado] || me.estado; });
   }
 
   document.addEventListener('DOMContentLoaded', async () => {

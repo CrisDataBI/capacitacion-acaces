@@ -64,7 +64,7 @@ button { font-family: inherit; }
 /* ---------- Topbar ---------- */
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0.85rem clamp(1rem, 4vw, 2.5rem);
+  padding: 0.7rem clamp(1rem, 4vw, 2.5rem);
   background: linear-gradient(115deg, #32184e 0%, var(--laft) 34%, #146873 68%, var(--accent-brand) 100%);
   border-bottom: 1px solid rgba(255,255,255,0.14);
   position: sticky; top: 0; z-index: 20;
@@ -92,8 +92,8 @@ button { font-family: inherit; }
   display: flex; align-items: center; gap: 0.6rem;
   text-decoration: none; position: relative; z-index: 1;
 }
-.topbar .brand .brand-icon { height: 32px; width: auto; display: block; flex: none; }
-.topbar .brand .brand-word { height: 15px; width: auto; display: block; margin-top: 2px; }
+.topbar .brand .brand-icon { height: 46px; width: auto; display: block; flex: none; }
+.topbar .brand .brand-word { height: 22px; width: auto; display: block; margin-top: 3px; }
 .topbar .crumbs { font-family: var(--font-mono); font-size: 0.78rem; color: rgba(255,255,255,0.8); position: relative; z-index: 1; }
 .topbar .crumbs a { color: rgba(255,255,255,0.8); text-decoration: none; }
 .topbar .crumbs a:hover { color: #fff; }
