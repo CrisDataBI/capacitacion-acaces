@@ -289,7 +289,7 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
 async function pageGuard(req, res, next) {
   try {
     const abiertas = ['/login.html', '/favicon.ico'];
-    if (abiertas.includes(req.path) || req.path.startsWith('/css') || req.path.startsWith('/js')) {
+    if (abiertas.includes(req.path) || req.path.startsWith('/css') || req.path.startsWith('/js') || req.path.startsWith('/img')) {
       return next();
     }
     const session = auth.readSession(req);
