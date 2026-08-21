@@ -95,23 +95,25 @@ async function obtenerOCrearInscripcion(usuarioId, modulo, segmento) {
   const edicion = ed[0];
   if (!edicion) throw new Error(`No existe la edicion ${modulo}${segmento ? '/' + segmento : ''}-2026. Corre las migraciones en Supabase.`);
 
-  const { rows: existente } = await db.query(
-    'select * from inscripciones where usuario_id=$1 and edicion_id=$2',
-    [usuarioId, edicion.id]
-  );
-  if (existente[0]) return { inscripcion: existente[0], edicion };
-
+  // Upsert atomico: si dos peticiones llegan al mismo tiempo (ej. progress.js
+  // y la pagina del examen consultando /api/me y /api/examen a la vez), esto
+  // evita una condicion de carrera que violaria la llave unica (usuario,edicion).
   const fechaLimite = new Date(Date.now() + edicion.dias_plazo * 86400000);
-  const { rows: nueva } = await db.query(
+  const { rows: upsert } = await db.query(
     `insert into inscripciones (usuario_id, edicion_id, fecha_inicio, fecha_limite, estado)
-     values ($1,$2, now(), $3, 'en_progreso') returning *`,
+     values ($1,$2, now(), $3, 'en_progreso')
+     on conflict (usuario_id, edicion_id) do update set usuario_id = excluded.usuario_id
+     returning *, (xmax = 0) as recien_creada`,
     [usuarioId, edicion.id, fechaLimite]
   );
-  await db.query(
-    'insert into eventos_trazabilidad (usuario_id, tipo_evento, detalle) values ($1,$2,$3)',
-    [usuarioId, 'inscripcion', JSON.stringify({ edicion: `${modulo}${segmento ? '-' + segmento : ''}-2026` })]
-  );
-  return { inscripcion: nueva[0], edicion };
+  const inscripcion = upsert[0];
+  if (inscripcion.recien_creada) {
+    await db.query(
+      'insert into eventos_trazabilidad (usuario_id, tipo_evento, detalle) values ($1,$2,$3)',
+      [usuarioId, 'inscripcion', JSON.stringify({ edicion: `${modulo}${segmento ? '-' + segmento : ''}-2026` })]
+    );
+  }
+  return { inscripcion, edicion };
 }
 
 app.get('/api/me', auth.requireAuth, async (req, res) => {
@@ -185,6 +187,113 @@ app.post('/api/progreso/:leccion', auth.requireAuth, async (req, res) => {
       await db.query("update inscripciones set estado='evaluacion_pendiente' where id=$1", [inscripcion.id]);
     }
     res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+/* ============================================================
+   API - evaluacion final (15 preguntas fijas por edicion)
+   ============================================================ */
+
+app.get('/api/examen', auth.requireAuth, async (req, res) => {
+  try {
+    const uid = req.session.uid;
+    const { rows: urows } = await db.query('select segmento from usuarios where id=$1', [uid]);
+    const { modulo, segmento } = leerModuloSegmento(req, urows[0] && urows[0].segmento);
+    const { inscripcion, edicion } = await obtenerOCrearInscripcion(uid, modulo, segmento);
+
+    const { rows: intentos } = await db.query(
+      'select numero_intento, calificacion, aprobado from intentos_examen where inscripcion_id=$1 order by numero_intento',
+      [inscripcion.id]
+    );
+    const yaAprobado = intentos.some((i) => i.aprobado);
+    const msRestante = new Date(inscripcion.fecha_limite).getTime() - Date.now();
+
+    const { rows: preguntas } = await db.query(
+      'select id, orden, tipo, enunciado, opciones from preguntas where edicion_id=$1 order by orden',
+      [edicion.id]
+    );
+
+    res.json({
+      preguntas,
+      notaMinima: edicion.nota_minima,
+      intentosPermitidos: edicion.intentos_permitidos,
+      intentosUsados: intentos.length,
+      yaAprobado,
+      vencido: msRestante <= 0 && !yaAprobado,
+      intentosAnteriores: intentos.map((i) => ({ numero: i.numero_intento, calificacion: Number(i.calificacion), aprobado: i.aprobado })),
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+app.post('/api/examen', auth.requireAuth, async (req, res) => {
+  try {
+    const uid = req.session.uid;
+    const { respuestas } = req.body || {};
+    if (!respuestas || typeof respuestas !== 'object') return res.status(400).json({ error: 'Faltan respuestas' });
+
+    const { rows: urows } = await db.query('select segmento from usuarios where id=$1', [uid]);
+    const { modulo, segmento } = leerModuloSegmento(req, urows[0] && urows[0].segmento);
+    const { inscripcion, edicion } = await obtenerOCrearInscripcion(uid, modulo, segmento);
+
+    const { rows: intentosPrevios } = await db.query(
+      'select * from intentos_examen where inscripcion_id=$1', [inscripcion.id]
+    );
+    if (intentosPrevios.some((i) => i.aprobado)) {
+      return res.status(400).json({ error: 'Ya aprobaste esta evaluación — no necesitas repetirla.' });
+    }
+    const msRestante = new Date(inscripcion.fecha_limite).getTime() - Date.now();
+    if (msRestante <= 0) {
+      return res.status(400).json({ error: 'El plazo para esta evaluación ya venció.' });
+    }
+    if (intentosPrevios.length >= edicion.intentos_permitidos) {
+      return res.status(400).json({ error: 'Ya no tienes intentos disponibles.' });
+    }
+
+    const { rows: preguntas } = await db.query('select * from preguntas where edicion_id=$1 order by orden', [edicion.id]);
+    let correctas = 0;
+    const detalle = preguntas.map((p) => {
+      const elegida = respuestas[p.id];
+      const ok = Number(elegida) === p.respuesta_correcta;
+      if (ok) correctas++;
+      return {
+        enunciado: p.enunciado,
+        opciones: p.opciones,
+        elegida: elegida === undefined || elegida === null ? null : Number(elegida),
+        correcta: p.respuesta_correcta,
+        ok,
+        explicacion: p.explicacion,
+        fuente: p.fuente,
+      };
+    });
+    const calificacion = Math.round((correctas / preguntas.length) * 100);
+    const aprobado = calificacion >= edicion.nota_minima;
+    const numeroIntento = intentosPrevios.length + 1;
+
+    await db.query(
+      `insert into intentos_examen (inscripcion_id, numero_intento, respuestas, calificacion, aprobado)
+       values ($1,$2,$3,$4,$5)`,
+      [inscripcion.id, numeroIntento, JSON.stringify(respuestas), calificacion, aprobado]
+    );
+    await db.query('update inscripciones set estado=$1 where id=$2', [aprobado ? 'aprobado' : 'reprobado', inscripcion.id]);
+    await db.query(
+      'insert into eventos_trazabilidad (usuario_id, tipo_evento, detalle) values ($1,$2,$3)',
+      [uid, 'intento_examen', JSON.stringify({ modulo, segmento, numeroIntento, calificacion, aprobado })]
+    );
+
+    res.json({
+      calificacion,
+      aprobado,
+      notaMinima: edicion.nota_minima,
+      numeroIntento,
+      intentosPermitidos: edicion.intentos_permitidos,
+      detalle,
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error del servidor' });
@@ -345,6 +454,18 @@ async function pageGuard(req, res, next) {
         if (segmentoUsuario !== rutaSegmento) {
           return res.redirect('/modulo-laft/' + segmentoUsuario + '/index.html');
         }
+      }
+    }
+
+    // El examen tambien respeta el segmento del usuario cuando aplica a LA/FT.
+    if (req.path === '/examen.html' && req.query.modulo === 'laft' && session.rol !== 'administrador') {
+      const { rows } = await db.query('select segmento from usuarios where id=$1', [session.uid]);
+      const segmentoUsuario = rows[0] && rows[0].segmento;
+      if (!segmentoUsuario) {
+        return res.status(403).send('<h1>403</h1><p>Tu cuenta todavía no tiene una pista de LA/FT asignada.</p>');
+      }
+      if (req.query.segmento && req.query.segmento !== segmentoUsuario) {
+        return res.redirect('/examen.html?modulo=laft&segmento=' + segmentoUsuario);
       }
     }
 

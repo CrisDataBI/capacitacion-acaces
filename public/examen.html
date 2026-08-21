@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evaluación final — ACACES</title>
+<link rel="stylesheet" href="css/design-system.css">
+<style>
+  .exam-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin: 1rem 0; }
+  .exam-question .exam-num { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .exam-question p.exam-text { font-weight: 650; margin: 0.4rem 0 0.9rem; }
+  .exam-options { display: flex; flex-direction: column; gap: 0.55rem; }
+  .exam-options label { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.9rem; cursor: pointer; font-size: 0.92rem; }
+  .exam-options label:hover { background: var(--surface-2); }
+  .exam-options input { flex: none; }
+  .exam-submit-row { position: sticky; bottom: 0; background: var(--bg); padding: 1rem 0; margin-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .exam-progress-note { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+  .result-hero { text-align: center; padding: 2rem 1rem; border-radius: var(--radius); margin-bottom: 2rem; }
+  .result-hero.good { background: var(--good-bg); }
+  .result-hero.bad { background: var(--bad-bg); }
+  .result-hero .score { font-family: var(--font-display); font-size: 3rem; margin: 0.3rem 0; }
+  .result-hero.good .score { color: var(--good); }
+  .result-hero.bad .score { color: var(--bad); }
+  .review-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 0.8rem 0; }
+  .review-item.is-ok { border-left: 4px solid var(--good); }
+  .review-item.is-wrong { border-left: 4px solid var(--bad); }
+  .review-item .review-answer { font-size: 0.88rem; margin: 0.5rem 0 0; }
+  .review-item .review-answer.correct-answer { color: var(--good); }
+  .review-item .review-answer.wrong-answer { color: var(--bad); }
+  .review-item .review-explain { font-size: 0.86rem; color: var(--muted); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><img src="/img/acaces-icono-blanco.png" alt="" class="brand-icon"><img src="/img/acaces-wordmark-blanco.png" alt="ACACES" class="brand-word"></a>
+    <span class="crumbs">Evaluación final</span>
+  </header>
+
+  <main class="wrap narrow" id="app">
+    <p class="lesson-kicker">Cargando evaluación…</p>
+  </main>
+
+  <script src="js/progress.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const modulo = params.get('modulo') === 'laft' ? 'laft' : 'riesgos';
+    const segmento = params.get('segmento') || '';
+    const qs = 'modulo=' + modulo + (segmento ? '&segmento=' + segmento : '');
+    const tituloModulo = modulo === 'laft' ? 'Módulo 2 · Prevención de LA/FT' : 'Módulo 1 · Gestión de Riesgos';
+    const volverUrl = modulo === 'laft'
+      ? 'modulo-laft/' + segmento + '/index.html'
+      : 'modulo-riesgos/index.html';
+
+    const app = document.getElementById('app');
+
+    function letra(i) { return String.fromCharCode(65 + i); }
+
+    function renderExamen(data) {
+      if (data.yaAprobado) {
+        const mejor = data.intentosAnteriores.filter(i => i.aprobado)[0];
+        app.innerHTML = `
+          <p class="lesson-kicker">${tituloModulo}</p>
+          <div class="result-hero good"><p style="margin:0;">Ya aprobaste esta evaluación</p><p class="score">${mejor ? mejor.calificacion : ''}%</p></div>
+          <p style="text-align:center;"><a class="btn btn-primary" href="${volverUrl}">Volver al módulo</a></p>`;
+        return;
+      }
+      if (data.vencido) {
+        app.innerHTML = `
+          <p class="lesson-kicker">${tituloModulo}</p>
+          <div class="result-hero bad"><p style="margin:0;">El plazo para esta evaluación ya venció</p></div>
+          <p style="text-align:center; color:var(--muted);">Contacta al Área de Riesgos o a Cumplimiento para conocer los próximos pasos.</p>
+          <p style="text-align:center;"><a class="btn btn-ghost" href="index.html">Volver al inicio</a></p>`;
+        return;
+      }
+      if (data.intentosUsados >= data.intentosPermitidos) {
+        app.innerHTML = `
+          <p class="lesson-kicker">${tituloModulo}</p>
+          <div class="result-hero bad"><p style="margin:0;">Se agotaron tus ${data.intentosPermitidos} intentos</p></div>
+          <p style="text-align:center; color:var(--muted);">Contacta al Área de Riesgos o a Cumplimiento para conocer los próximos pasos.</p>
+          <p style="text-align:center;"><a class="btn btn-ghost" href="index.html">Volver al inicio</a></p>`;
+        return;
+      }
+
+      const intentoActual = data.intentosUsados + 1;
+      let html = `
+        <p class="lesson-kicker">${tituloModulo}</p>
+        <h1 class="lesson-title">Evaluación final</h1>
+        <p class="lesson-dek">${data.preguntas.length} preguntas · nota mínima ${data.notaMinima}% · intento ${intentoActual} de ${data.intentosPermitidos}</p>
+        <form id="exam-form">`;
+      data.preguntas.forEach((p, idx) => {
+        html += `<div class="exam-question">
+          <span class="exam-num">Pregunta ${idx + 1} de ${data.preguntas.length}</span>
+          <p class="exam-text">${p.enunciado}</p>
+          <div class="exam-options">`;
+        p.opciones.forEach((op, i) => {
+          html += `<label><input type="radio" name="p_${p.id}" value="${i}" required> ${letra(i)}) ${op}</label>`;
+        });
+        html += `</div></div>`;
+      });
+      html += `
+        <div class="exam-submit-row">
+          <span class="exam-progress-note" id="exam-note">Responde todas las preguntas para poder enviar.</span>
+          <button class="btn btn-primary" type="submit">Enviar evaluación</button>
+        </div>
+        </form>`;
+      app.innerHTML = html;
+
+      document.getElementById('exam-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const respuestas = {};
+        data.preguntas.forEach((p) => {
+          const picked = document.querySelector('input[name="p_' + p.id + '"]:checked');
+          if (picked) respuestas[p.id] = Number(picked.value);
+        });
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando…';
+        const res = await fetch('/api/examen?' + qs, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ respuestas }),
+        });
+        const result = await res.json();
+        if (!res.ok) {
+          alert(result.error || 'No se pudo enviar la evaluación.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar evaluación';
+          return;
+        }
+        renderResultado(result);
+      });
+    }
+
+    function renderResultado(r) {
+      const puedeReintentar = !r.aprobado && r.numeroIntento < r.intentosPermitidos;
+      let html = `
+        <p class="lesson-kicker">${tituloModulo}</p>
+        <div class="result-hero ${r.aprobado ? 'good' : 'bad'}">
+          <p style="margin:0;">${r.aprobado ? '¡Aprobado!' : 'No alcanzaste la nota mínima'}</p>
+          <p class="score">${r.calificacion}%</p>
+          <p style="margin:0; color:var(--muted);">Nota mínima: ${r.notaMinima}% · Intento ${r.numeroIntento} de ${r.intentosPermitidos}</p>
+        </div>`;
+      r.detalle.forEach((d, idx) => {
+        html += `<div class="review-item ${d.ok ? 'is-ok' : 'is-wrong'}">
+          <p style="font-weight:650; margin:0;">${idx + 1}. ${d.enunciado}</p>
+          ${d.ok
+            ? `<p class="review-answer correct-answer">✓ Respondiste correctamente: ${letra(d.correcta)}) ${d.opciones[d.correcta]}</p>`
+            : `<p class="review-answer wrong-answer">✗ Tu respuesta: ${d.elegida === null ? '(sin responder)' : letra(d.elegida) + ') ' + d.opciones[d.elegida]}</p>
+               <p class="review-answer correct-answer">Correcta: ${letra(d.correcta)}) ${d.opciones[d.correcta]}</p>`}
+          <p class="review-explain">${d.explicacion}${d.fuente ? ' <span class="mono">(' + d.fuente + ')</span>' : ''}</p>
+        </div>`;
+      });
+      html += `<div style="text-align:center; margin: 2rem 0;">`;
+      if (puedeReintentar) {
+        html += `<button class="btn btn-primary" onclick="location.reload()">Reintentar (${r.intentosPermitidos - r.numeroIntento} intento restante)</button> `;
+      }
+      html += `<a class="btn btn-ghost" href="index.html">Volver al inicio</a></div>`;
+      app.innerHTML = html;
+    }
+
+    (async () => {
+      const res = await fetch('/api/examen?' + qs);
+      if (res.status === 401) { window.location.href = 'login.html'; return; }
+      if (!res.ok) { app.innerHTML = '<p>No se pudo cargar la evaluación.</p>'; return; }
+      const data = await res.json();
+      renderExamen(data);
+    })();
+  </script>
+</body>
+</html>
