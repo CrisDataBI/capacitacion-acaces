@@ -66,7 +66,7 @@ app.post('/api/cambiar-password', auth.requireAuth, async (req, res) => {
     }
     const hash = auth.hashPassword(nueva);
     await db.query('update usuarios set password_hash = $1, debe_cambiar_password = false where id = $2', [hash, user.id]);
-    res.json({ ok: true });
+    res.json({ ok: true, rol: user.rol });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error del servidor' });
