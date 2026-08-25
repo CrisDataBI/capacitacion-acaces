@@ -13,8 +13,11 @@
   .exam-options label { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.9rem; cursor: pointer; font-size: 0.92rem; }
   .exam-options label:hover { background: var(--surface-2); }
   .exam-options input { flex: none; }
-  .exam-submit-row { position: sticky; bottom: 0; background: var(--bg); padding: 1rem 0; margin-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .exam-submit-row { position: sticky; bottom: 0; background: var(--bg); padding: 1rem 0; margin-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
   .exam-progress-note { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+  .exam-timer { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; padding: 0.25rem 0.7rem; border: 2px solid var(--border); border-radius: 8px; color: var(--muted); white-space: nowrap; flex: none; }
+  .exam-timer.warn { color: var(--bad); border-color: var(--bad); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
   .result-hero { text-align: center; padding: 2rem 1rem; border-radius: var(--radius); margin-bottom: 2rem; }
   .result-hero.good { background: var(--good-bg); }
   .result-hero.bad { background: var(--bad-bg); }
@@ -28,6 +31,7 @@
   .review-item .review-answer.correct-answer { color: var(--good); }
   .review-item .review-answer.wrong-answer { color: var(--bad); }
   .review-item .review-explain { font-size: 0.86rem; color: var(--muted); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .primer-intento-nota { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; color: var(--muted); text-align: center; }
 </style>
 </head>
 <body>
@@ -52,6 +56,54 @@
       : 'modulo-riesgos/index.html';
 
     const app = document.getElementById('app');
+    const DURACION_MS = 30 * 60 * 1000;
+
+    function timerStorageKey() { return 'exam_inicio_' + modulo + '_' + (segmento || 'general'); }
+
+    function tiempoRestante() {
+      const inicio = parseInt(localStorage.getItem(timerStorageKey()) || '0');
+      if (!inicio) return DURACION_MS;
+      return Math.max(0, inicio + DURACION_MS - Date.now());
+    }
+
+    function iniciarTimer() {
+      if (!localStorage.getItem(timerStorageKey())) {
+        localStorage.setItem(timerStorageKey(), Date.now().toString());
+      }
+    }
+
+    function limpiarTimer() {
+      localStorage.removeItem(timerStorageKey());
+    }
+
+    function formatTiempo(ms) {
+      const mins = Math.floor(ms / 60000);
+      const segs = Math.floor((ms % 60000) / 1000);
+      return String(mins).padStart(2, '0') + ':' + String(segs).padStart(2, '0');
+    }
+
+    let _timerInterval = null;
+    let _autoSubmitted = false;
+
+    function arrancarReloj() {
+      function tick() {
+        const restante = tiempoRestante();
+        const el = document.getElementById('exam-timer');
+        if (el) {
+          el.textContent = formatTiempo(restante);
+          if (restante < 5 * 60 * 1000) el.classList.add('warn');
+          else el.classList.remove('warn');
+        }
+        if (restante <= 0 && !_autoSubmitted) {
+          _autoSubmitted = true;
+          clearInterval(_timerInterval);
+          const form = document.getElementById('exam-form');
+          if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        }
+      }
+      tick();
+      _timerInterval = setInterval(tick, 1000);
+    }
 
     function letra(i) { return String.fromCharCode(65 + i); }
 
@@ -81,7 +133,10 @@
         return;
       }
 
+      iniciarTimer();
+      const restanteInicial = tiempoRestante();
       const intentoActual = data.intentosUsados + 1;
+
       let html = `
         <p class="lesson-kicker">${tituloModulo}</p>
         <h1 class="lesson-title">Evaluación final</h1>
@@ -99,22 +154,28 @@
       });
       html += `
         <div class="exam-submit-row">
-          <span class="exam-progress-note" id="exam-note">Responde todas las preguntas para poder enviar.</span>
+          <span class="exam-timer" id="exam-timer">${formatTiempo(restanteInicial)}</span>
+          <span class="exam-progress-note" id="exam-note">Tienes 30 minutos para completar la evaluación.</span>
           <button class="btn btn-primary" type="submit">Enviar evaluación</button>
         </div>
         </form>`;
       app.innerHTML = html;
 
+      arrancarReloj();
+
       document.getElementById('exam-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (_timerInterval) clearInterval(_timerInterval);
+        limpiarTimer();
+
         const respuestas = {};
         data.preguntas.forEach((p) => {
           const picked = document.querySelector('input[name="p_' + p.id + '"]:checked');
           if (picked) respuestas[p.id] = Number(picked.value);
         });
         const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Enviando…';
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Enviando…'; }
+
         const res = await fetch('/api/examen?' + qs, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ respuestas }),
@@ -122,8 +183,7 @@
         const result = await res.json();
         if (!res.ok) {
           alert(result.error || 'No se pudo enviar la evaluación.');
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Enviar evaluación';
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar evaluación'; }
           return;
         }
         renderResultado(result);
@@ -132,6 +192,8 @@
 
     function renderResultado(r) {
       const puedeReintentar = !r.aprobado && r.numeroIntento < r.intentosPermitidos;
+      const mostrarRespuestas = r.numeroIntento >= 2 || r.aprobado;
+
       let html = `
         <p class="lesson-kicker">${tituloModulo}</p>
         <div class="result-hero ${r.aprobado ? 'good' : 'bad'}">
@@ -139,16 +201,25 @@
           <p class="score">${r.calificacion}%</p>
           <p style="margin:0; color:var(--muted);">Nota mínima: ${r.notaMinima}% · Intento ${r.numeroIntento} de ${r.intentosPermitidos}</p>
         </div>`;
-      r.detalle.forEach((d, idx) => {
-        html += `<div class="review-item ${d.ok ? 'is-ok' : 'is-wrong'}">
-          <p style="font-weight:650; margin:0;">${idx + 1}. ${d.enunciado}</p>
-          ${d.ok
-            ? `<p class="review-answer correct-answer">✓ Respondiste correctamente: ${letra(d.correcta)}) ${d.opciones[d.correcta]}</p>`
-            : `<p class="review-answer wrong-answer">✗ Tu respuesta: ${d.elegida === null ? '(sin responder)' : letra(d.elegida) + ') ' + d.opciones[d.elegida]}</p>
-               <p class="review-answer correct-answer">Correcta: ${letra(d.correcta)}) ${d.opciones[d.correcta]}</p>`}
-          <p class="review-explain">${d.explicacion}${d.fuente ? ' <span class="mono">(' + d.fuente + ')</span>' : ''}</p>
+
+      if (mostrarRespuestas) {
+        r.detalle.forEach((d, idx) => {
+          html += `<div class="review-item ${d.ok ? 'is-ok' : 'is-wrong'}">
+            <p style="font-weight:650; margin:0;">${idx + 1}. ${d.enunciado}</p>
+            ${d.ok
+              ? `<p class="review-answer correct-answer">✓ Respondiste correctamente: ${letra(d.correcta)}) ${d.opciones[d.correcta]}</p>`
+              : `<p class="review-answer wrong-answer">✗ Tu respuesta: ${d.elegida === null ? '(sin responder)' : letra(d.elegida) + ') ' + d.opciones[d.elegida]}</p>
+                 <p class="review-answer correct-answer">Correcta: ${letra(d.correcta)}) ${d.opciones[d.correcta]}</p>`}
+            <p class="review-explain">${d.explicacion}${d.fuente ? ' <span class="mono">(' + d.fuente + ')</span>' : ''}</p>
+          </div>`;
+        });
+      } else {
+        html += `<div class="primer-intento-nota">
+          <p style="margin:0;">Las respuestas correctas y explicaciones estarán disponibles en tu segundo intento.</p>
+          <p style="margin:0.4rem 0 0; font-size:0.85rem;">Revisa el material y vuelve a intentarlo cuando estés listo/a.</p>
         </div>`;
-      });
+      }
+
       html += `<div style="text-align:center; margin: 2rem 0;">`;
       if (puedeReintentar) {
         html += `<button class="btn btn-primary" onclick="location.reload()">Reintentar (${r.intentosPermitidos - r.numeroIntento} intento restante)</button> `;

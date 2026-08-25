@@ -79,6 +79,27 @@
     injectAccountMenu(me);
     applyProgressToDom(me);
 
+    // En el dashboard, cargar también el progreso del módulo LA/FT
+    if (document.querySelector('[data-laft-progress-bar]') && me.segmento) {
+      const laftQs = 'modulo=laft&segmento=' + me.segmento;
+      const laftRes = await fetch('/api/me?' + laftQs);
+      if (laftRes.ok) {
+        const laft = await laftRes.json();
+        const laftDone = Object.keys(laft.progreso || {}).filter(k => laft.progreso[k]).length;
+        const laftPct = Math.round((laftDone / 10) * 100);
+        document.querySelectorAll('[data-laft-progress-bar]').forEach(el => { el.style.width = laftPct + '%'; });
+        document.querySelectorAll('[data-laft-progress-percent]').forEach(el => { el.textContent = laftPct + '%'; });
+        document.querySelectorAll('[data-laft-dias]').forEach(el => { el.textContent = laft.diasRestantes; });
+        document.querySelectorAll('[data-laft-fecha]').forEach(el => {
+          el.textContent = new Date(laft.fechaLimite).toLocaleDateString('es-SV', { day: 'numeric', month: 'long', year: 'numeric' });
+        });
+        const ESTADOS = { pendiente: 'Pendiente', en_progreso: 'En progreso', evaluacion_pendiente: 'Evaluación pendiente', aprobado: 'Aprobado', reprobado: 'Reprobado', vencido: 'Vencido' };
+        document.querySelectorAll('[data-laft-estado]').forEach(el => { el.textContent = ESTADOS[laft.estado] || laft.estado; });
+        const cardLaft = document.getElementById('card-laft');
+        if (cardLaft) cardLaft.href = 'modulo-laft/' + me.segmento + '/index.html';
+      }
+    }
+
     const markBtn = document.querySelector('[data-mark-complete]');
     if (markBtn) {
       markBtn.addEventListener('click', async () => {

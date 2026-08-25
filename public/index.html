@@ -45,18 +45,17 @@
         </div>
         <p style="font-size:0.78rem; color:var(--muted); margin:0.7rem 0 0;">Estado: <strong data-estado>—</strong> · quedan <strong data-dias-restantes>—</strong> días (límite: <span data-fecha-limite>—</span>)</p>
       </a>
-      <a class="module-card laft" href="modulo-laft/index.html">
+      <a class="module-card laft" id="card-laft" href="modulo-laft/index.html">
         <h3>Módulo 2 · Prevención de LA/FT</h3>
-        <p class="module-sub">Tu pista (Negocios / Administrativo) se asigna automáticamente</p>
-        <div class="bar"><span style="width:0%"></span></div>
+        <p class="module-sub">Tu pista se asigna automáticamente según tu área</p>
+        <div class="bar"><span data-laft-progress-bar style="width:0%; background:var(--laft);"></span></div>
         <div class="module-status-row">
-          <span class="pill neutral">Contenido en preparación</span>
-          <span>Ver →</span>
+          <span data-laft-progress-percent>0%</span>
+          <span>Continuar →</span>
         </div>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0.7rem 0 0;">Estado: <strong data-laft-estado>—</strong> · quedan <strong data-laft-dias>—</strong> días (límite: <span data-laft-fecha>—</span>)</p>
       </a>
     </div>
-
-    <p class="disclaimer">Pendiente: el material de LA/FT para la pista Negocios.</p>
   </main>
 
   <script src="js/progress.js"></script>
