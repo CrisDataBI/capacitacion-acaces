@@ -60,28 +60,45 @@
 
     <section class="section">
       <h2>Frecuencia de actualización de expedientes</h2>
-      <p class="lede">La Gerencia de Negocios actualiza los expedientes según el nivel de riesgo del Asociado. Relaciona cada nivel con su frecuencia.</p>
-      <div class="match" data-component="match">
-        <div class="match-col match-left">
-          <button class="match-item" data-key="k1">Bajo riesgo</button>
-          <button class="match-item" data-key="k2">Riesgo medio</button>
-          <button class="match-item" data-key="k3">Alto riesgo</button>
-        </div>
-        <div class="match-col match-right">
-          <button class="match-item" data-key="k3">Cada año</button>
-          <button class="match-item" data-key="k1">Cada 5 años</button>
-          <button class="match-item" data-key="k2">Cada 3 años</button>
-        </div>
+      <p class="lede">La Gerencia de Negocios actualiza los expedientes según el nivel de riesgo del Asociado. Toca cada tarjeta para ver la frecuencia que corresponde.</p>
+      <div class="flip-grid" data-component="flip-cards">
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Bajo riesgo</span><span class="flip-hint">Toca para ver la frecuencia</span></div>
+            <div class="flip-back"><p><strong>Cada 2 años</strong><br><br>Asociado cuyo perfil no presenta señales de alerta y cuyas operaciones son consistentes con su actividad económica declarada.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Riesgo medio</span><span class="flip-hint">Toca para ver la frecuencia</span></div>
+            <div class="flip-back"><p><strong>Cada 2 años</strong><br><br>Mismo período que bajo riesgo, pero con mayor atención a variaciones en el perfil financiero y posibles cambios en la actividad del Asociado.</p></div>
+          </div>
+        </button>
+        <button class="flip-card" type="button">
+          <div class="flip-inner">
+            <div class="flip-front"><span class="flip-title">Alto riesgo</span><span class="flip-hint">Toca para ver la frecuencia</span></div>
+            <div class="flip-back"><p><strong>Cada año</strong><br><br>Revisión anual obligatoria. Aplica a PEPs, APNFD y cualquier Asociado con operaciones que superen los umbrales establecidos o que presente señales de alerta activas.</p></div>
+          </div>
+        </button>
       </div>
     </section>
 
     <section class="section">
       <h2>Evaluación individualizada de riesgos</h2>
+      <div class="callout normativo">
+        <span class="callout-tag">Definición</span>
+        <p>La evaluación individualizada de riesgo es un análisis específico que realiza la Oficialía de Cumplimiento sobre un Asociado concreto cuando se detectan elementos que elevan su exposición al riesgo de LA/FT/FPADM. Su objetivo es determinar si la relación comercial puede continuar, debe restringirse o debe terminarse. El resultado se comunica al Consejo de Administración, que adopta la decisión final. El rol del área de Negocios es identificar los elementos de riesgo y solicitar la evaluación — no realizarla ni tomar la decisión de manera unilateral.</p>
+      </div>
       <div class="checklist" data-component="checklist">
         <div class="check-row" data-answer="true">
           <span class="check-text">Si el área de Negocios identifica elementos que exponen a la Cooperativa a mayor riesgo de LA/FT/FPADM, debe solicitar apoyo a la Oficialía de Cumplimiento para una evaluación individualizada.</span>
           <div class="check-actions"><button data-value="true">Correcto</button><button data-value="false">Incorrecto</button></div>
-          <p class="check-feedback">Correcto — la evaluación individualizada la realiza la Oficialía de Cumplimiento y debe comunicarse al Consejo de Administración para que adopte la decisión sobre la relación comercial.</p>
+          <p class="check-feedback">Correcto — el personal de Negocios no realiza la evaluación por sí solo. La solicita a la Oficialía de Cumplimiento, quien la lleva a cabo y presenta los resultados al Consejo de Administración para que adopte la decisión sobre la relación comercial.</p>
+        </div>
+        <div class="check-row" data-answer="false">
+          <span class="check-text">El personal de Negocios puede decidir por su cuenta finalizar la relación comercial con un Asociado si detecta señales de alerta graves.</span>
+          <div class="check-actions"><button data-value="true">Correcto</button><button data-value="false">Incorrecto</button></div>
+          <p class="check-feedback">Incorrecto — la decisión de finalizar o restringir la relación comercial le corresponde al Consejo de Administración, con base en el informe de la evaluación individualizada realizada por la Oficialía de Cumplimiento. El personal de Negocios reporta y solicita la evaluación; no actúa de forma unilateral.</p>
         </div>
       </div>
     </section>
