@@ -3,25 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Módulo 2 · LA/FT — Negocios — ACACES</title>
+<title>Módulo 2 · LA/FT Negocios — ACACES</title>
 <link rel="stylesheet" href="../../css/design-system.css">
-<style>.lesson-kicker{color:var(--laft);}</style>
+<style>
+  .lesson-list { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.6rem; }
+  .lesson-row {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1rem 1.2rem; text-decoration: none; color: inherit;
+  }
+  .lesson-row .lesson-num { font-family: var(--font-mono); font-size: 0.9rem; color: var(--laft); width: 2.4rem; flex: none; }
+  .lesson-row .lesson-info { flex: 1; }
+  .lesson-row .lesson-info h4 { font-family: var(--font-display); font-size: 1.0rem; margin: 0 0 0.2rem; }
+  .lesson-row .lesson-info span { font-size: 0.8rem; color: var(--muted); }
+</style>
 </head>
-<body>
+<body data-modulo="laft" data-segmento="negocios">
   <header class="topbar">
     <a class="brand" href="../../index.html"><img src="/img/acaces-icono-blanco.png" alt="" class="brand-icon"><img src="/img/acaces-wordmark-blanco.png" alt="ACACES" class="brand-word"></a>
-    <span class="crumbs"><a href="../index.html">Módulo 2</a> / Negocios</span>
+    <span class="crumbs"><a href="../../index.html">Inicio</a> / Módulo 2 · Negocios</span>
   </header>
-  <main class="wrap narrow">
-    <p class="lesson-kicker">Módulo 2 · Prevención de LA/FT — Pista Negocios</p>
-    <h1 class="lesson-title">Contenido en preparación</h1>
-    <p class="lesson-dek">Esta capacitación está dirigida al personal de Negocios (agencias). El acceso ya está restringido correctamente a tu pista — el contenido se agrega en cuanto Cumplimiento nos comparta el material.</p>
-    <div class="callout" style="border-left-color:var(--laft); background:var(--laft-bg);">
-      <span class="callout-tag" style="color:var(--laft);">Pendiente</span>
-      <p>[CONTENIDO PENDIENTE DE INCORPORAR — Cumplimiento, pista Negocios]</p>
+
+  <main class="wrap">
+    <p class="lesson-kicker" style="color:var(--laft);">Módulo 2 · Pista Negocios</p>
+    <h1 class="lesson-title">Prevención de LA/FT/FPADM</h1>
+    <p class="lesson-dek">Lavado de Activos, Financiamiento del Terrorismo y de la Proliferación — enfocado en el rol del personal de Negocios y agencias: debida diligencia, identificación de Asociados y reporte de operaciones inusuales. 9 lecciones antes de la evaluación final.</p>
+
+    <div class="bar" style="max-width:400px;"><span data-progress-bar style="width:0%; background:var(--laft);"></span></div>
+    <p class="mono" style="font-size:0.82rem; color:var(--muted);"><span data-progress-percent>0%</span> completado</p>
+
+    <div class="lesson-list">
+      <a class="lesson-row" href="leccion-1.html">
+        <span class="lesson-num">01</span>
+        <span class="lesson-info"><h4>Conceptos fundamentales de LA/FT/FPADM</h4><span>Qué es cada delito y sus etapas · ~20 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l1">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-2.html">
+        <span class="lesson-num">02</span>
+        <span class="lesson-info"><h4>Marco regulatorio y posición de garante</h4><span>Normativa nacional aplicable · ~12 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l2">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-3.html">
+        <span class="lesson-num">03</span>
+        <span class="lesson-info"><h4>Las 4 políticas internas</h4><span>Panorama general · ~8 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l3">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-4.html">
+        <span class="lesson-num">04</span>
+        <span class="lesson-info"><h4>Debida diligencia: tipos y cuándo aplicarlos</h4><span>Estándar, Simplificada e Intensificada · ~14 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l4">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-5.html">
+        <span class="lesson-num">05</span>
+        <span class="lesson-info"><h4>Identificación del Asociado</h4><span>Documentos, listas de cautela y umbrales · ~16 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l5">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-6.html">
+        <span class="lesson-num">06</span>
+        <span class="lesson-info"><h4>PEPs y APNFD</h4><span>Personas Expuestas Políticamente y actividades de alto riesgo · ~12 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l6">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-7.html">
+        <span class="lesson-num">07</span>
+        <span class="lesson-info"><h4>Ingresos mensuales y frecuencia de actualización</h4><span>Métodos de estimación y clasificación de riesgo · ~14 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l7">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-8.html">
+        <span class="lesson-num">08</span>
+        <span class="lesson-info"><h4>Responsabilidades del personal de Negocios</h4><span>Por cargo: Ejecutivos, Cajeros, Coordinador, Jefe, Gerente · ~18 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l8">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="leccion-9.html">
+        <span class="lesson-num">09</span>
+        <span class="lesson-info"><h4>Operaciones inusuales y señales de alerta</h4><span>Cómo identificar y reportar correctamente · ~10 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="l9">Pendiente</span>
+      </a>
+      <a class="lesson-row" href="cierre.html">
+        <span class="lesson-num">✓</span>
+        <span class="lesson-info"><h4>Cierre del módulo</h4><span>Compromisos antes de la evaluación · ~2 min</span></span>
+        <span class="lesson-status pill neutral" data-lesson-status="cierre">Pendiente</span>
+      </a>
     </div>
-    <p><a class="btn btn-ghost" href="../../index.html">← Volver al inicio</a></p>
+
+    <div class="callout normativo" style="margin-top: 2.5rem;">
+      <span class="callout-tag">Evaluación</span>
+      <p>Al completar las 9 lecciones y el cierre, se habilita la evaluación final: 15 preguntas, 70% mínimo para aprobar, 2 intentos.</p>
+    </div>
   </main>
+
   <script src="../../js/progress.js"></script>
 </body>
 </html>
