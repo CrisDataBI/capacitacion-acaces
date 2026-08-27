@@ -33,23 +33,60 @@
 
     <section class="section">
       <h2>Personas Expuestas Políticamente (PEPs)</h2>
-      <p class="lede">Clasifica cada cargo como PEP salvadoreño o PEP extranjero/internacional.</p>
-      <div class="classify" data-component="classify">
-        <div class="classify-bank">
-          <button class="classify-item" data-answer="sv">Presidente y Vicepresidente de la República</button>
-          <button class="classify-item" data-answer="sv">Diputados propietarios y suplentes de la Asamblea Legislativa</button>
-          <button class="classify-item" data-answer="sv">Alcaldes y miembros de consejos municipales</button>
-          <button class="classify-item" data-answer="sv">Director de la Policía Nacional Civil</button>
-          <button class="classify-item" data-answer="sv">Presidente y Magistrados de la Corte Suprema de Justicia</button>
-          <button class="classify-item" data-answer="ext">Jefes de Estado extranjeros</button>
-          <button class="classify-item" data-answer="ext">Funcionarios gubernamentales de organismos internacionales de alto nivel</button>
-          <button class="classify-item" data-answer="sv">Fiscal General y Procurador General de la República</button>
+      <div class="callout normativo">
+        <span class="callout-tag">Definición institucional</span>
+        <p>La Cooperativa reconoce como Personas Expuestas Políticamente aquellas que en El Salvador o su país de origen ejerzan o <strong>hayan ejercido</strong> los siguientes cargos.</p>
+      </div>
+
+      <div class="pep-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-top:1.2rem;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--laft); border-radius:var(--radius); padding:1.1rem 1.2rem;">
+          <p style="font-family:var(--font-mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--laft); margin:0 0 0.8rem;">PEPs — El Salvador</p>
+          <ol style="margin:0; padding-left:1.2rem; font-size:0.88rem; line-height:1.85;">
+            <li>Presidente de la República</li>
+            <li>Vicepresidente de la República</li>
+            <li>Designados de la presidencia</li>
+            <li>Diputados propietarios y suplentes de la Asamblea Legislativa</li>
+            <li>Ministros de Estado</li>
+            <li>Viceministros de Estado</li>
+            <li>Gobernadores departamentales</li>
+            <li>Secretarios departamentales</li>
+            <li>Presidente y Magistrados de la Corte Suprema de Justicia y de las Cámaras de Segunda Instancia</li>
+            <li>Jueces de Primera Instancia</li>
+            <li>Jueces de Paz</li>
+            <li>Alcaldes y demás miembros de los Concejos Municipales</li>
+            <li>Presidente de la Corte de Cuentas de la República</li>
+            <li>Magistrados de la Corte de Cuentas de la República</li>
+            <li>Fiscal General de la República</li>
+            <li>Procurador General de la República</li>
+            <li>Procurador para la Defensa de los Derechos Humanos</li>
+            <li>Presidente del Tribunal Supremo Electoral</li>
+            <li>Magistrados del Tribunal Supremo Electoral</li>
+            <li>Representantes diplomáticos</li>
+            <li>Titulares de instituciones autónomas u otras dependencias del Estado</li>
+            <li>Directores y representantes legales de sociedades constituidas con activos del Estado o cuyos accionistas sean instituciones estatales</li>
+            <li>Miembros del máximo organismo de dirección de partidos políticos, incluyendo el tesorero</li>
+            <li>Director de la Policía Nacional Civil</li>
+            <li>Subdirector de la Policía Nacional Civil</li>
+            <li>Generales de las Fuerzas Armadas</li>
+            <li>Jefe del Estado Mayor Conjunto</li>
+            <li>Subjefe del Estado Mayor Conjunto</li>
+          </ol>
         </div>
-        <div class="classify-zones">
-          <div class="classify-zone" data-zone="sv"><h5>PEP El Salvador</h5><div class="zone-drop"></div></div>
-          <div class="classify-zone" data-zone="ext"><h5>PEP Extranjero / Internacional</h5><div class="zone-drop"></div></div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--laft); border-radius:var(--radius); padding:1.1rem 1.2rem;">
+          <p style="font-family:var(--font-mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--laft); margin:0 0 0.8rem;">PEPs — Extranjeros / Internacionales</p>
+          <ol style="margin:0; padding-left:1.2rem; font-size:0.88rem; line-height:1.85;">
+            <li>Jefes de Estado o de Gobierno</li>
+            <li>Políticos de Alto Nivel</li>
+            <li>Funcionarios Públicos extranjeros gubernamentales, judiciales o de organismos internacionales de alto nivel</li>
+          </ol>
         </div>
       </div>
+
+      <style>
+        @media (max-width: 640px) {
+          .pep-grid { grid-template-columns: 1fr !important; }
+        }
+      </style>
     </section>
 
     <section class="section">
