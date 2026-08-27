@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — ACACES</title>
+<link rel="stylesheet" href="../css/design-system.css">
+<style>
+  /* ── Layout ── */
+  .dash-header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:2rem; }
+  .dash-header .back-row { display:flex; align-items:center; gap:0.8rem; }
+  .dash-date { font-size:0.78rem; color:var(--muted); }
+  .print-btn { font-size:0.8rem; }
+
+  /* ── KPI strip ── */
+  .kpi-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.9rem; margin-bottom:1.6rem; }
+  .kpi-box { background:var(--surface); border:1px solid var(--border); border-top:3px solid; border-radius:var(--radius); padding:0.9rem 1.1rem; }
+  .kpi-box .kv { font-family:var(--font-display); font-size:2.1rem; line-height:1; }
+  .kpi-box .kl { font-size:0.72rem; color:var(--muted); margin-top:0.28rem; }
+
+  /* ── Chart grid ── */
+  .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin-bottom:1.1rem; }
+  @media(max-width:860px){ .charts-row { grid-template-columns:1fr; } }
+  .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.3rem 1.4rem; }
+  .chart-card h3 { font-family:var(--font-mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted); margin:0 0 1.2rem; }
+
+  /* ── Donut ── */
+  .donut-wrap { display:flex; align-items:center; gap:1.4rem; flex-wrap:wrap; }
+  .donut-legend { display:flex; flex-direction:column; gap:0.45rem; flex:1; min-width:130px; }
+  .leg-row { display:flex; align-items:center; gap:0.45rem; font-size:0.8rem; line-height:1.3; }
+  .leg-dot { width:9px; height:9px; border-radius:50%; flex:none; }
+  .leg-pct { margin-left:auto; font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); white-space:nowrap; padding-left:0.4rem; }
+
+  /* ── Horizontal bar chart ── */
+  .bar-chart { display:flex; flex-direction:column; gap:0.5rem; }
+  .bar-row { display:flex; align-items:center; gap:0.6rem; }
+  .bar-label { width:4.5rem; text-align:right; flex:none; font-family:var(--font-mono); font-size:0.74rem; color:var(--ink); }
+  .bar-track { flex:1; background:var(--surface-2); border-radius:99px; height:20px; position:relative; overflow:visible; }
+  .bar-fill { height:100%; border-radius:99px; min-width:0; display:flex; align-items:center; justify-content:flex-end; padding-right:0.4rem; }
+  .bar-count-in  { font-size:0.72rem; font-family:var(--font-mono); color:#fff; font-weight:600; white-space:nowrap; }
+  .bar-count-out { font-size:0.72rem; font-family:var(--font-mono); color:var(--ink); white-space:nowrap; position:absolute; left:calc(100% + 0.35rem); top:50%; transform:translateY(-50%); }
+
+  /* ── Stat tiles (intentos) ── */
+  .stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:0.7rem; }
+  .stat-tile { text-align:center; background:var(--surface-2); border-radius:10px; padding:0.9rem 0.5rem; }
+  .stat-tile .sn { font-family:var(--font-display); font-size:2rem; line-height:1; }
+  .stat-tile .st { font-size:0.68rem; color:var(--muted); margin-top:0.3rem; line-height:1.3; }
+
+  /* ── Pista breakdown ── */
+  .pista-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+  @media(max-width:620px){ .pista-grid { grid-template-columns:1fr; } }
+  .pista-col-title { font-family:var(--font-mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.07em; margin:0 0 0.7rem; }
+
+  /* ── Full-width card ── */
+  .chart-card.full { margin-bottom:1.1rem; }
+
+  /* ── Loading ── */
+  .loading-wrap { text-align:center; color:var(--muted); padding:5rem 0; }
+
+  @media print {
+    .topbar, .back-row, .print-btn { display:none !important; }
+    .wrap { padding-top:0; }
+    .charts-row { page-break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <img src="/img/acaces-icono-blanco.png" alt="" class="brand-icon">
+    <img src="/img/acaces-wordmark-blanco.png" alt="ACACES" class="brand-word">
+  </a>
+  <span class="crumbs"><a href="index.html">Panel</a> / Dashboard</span>
+</header>
+
+<div class="wrap loading-wrap" id="loading-wrap">
+  <p>Cargando datos del dashboard…</p>
+</div>
+
+<main class="wrap" id="dash" hidden>
+  <div class="dash-header">
+    <div>
+      <p class="lesson-kicker" id="dash-kicker"></p>
+      <h1 class="lesson-title" id="dash-title" style="margin-bottom:0.3rem;"></h1>
+      <p class="dash-date">Corte: <span id="dash-fecha"></span></p>
+    </div>
+    <div class="back-row">
+      <button class="btn btn-ghost print-btn" onclick="window.print()">Imprimir / Exportar PDF</button>
+      <a class="btn btn-ghost" href="index.html">← Volver al panel</a>
+    </div>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="kpi-strip" id="kpi-strip"></div>
+
+  <!-- Row 1: Donut + Notas -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Distribución por estado</h3>
+      <div class="donut-wrap">
+        <svg id="donut-svg" width="160" height="160" viewBox="0 0 160 160" style="flex:none;"></svg>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Distribución de calificaciones</h3>
+      <div id="notas-chart" class="bar-chart"></div>
+      <p id="notas-empty" hidden style="color:var(--muted);font-size:0.83rem;margin-top:0.8rem;">Aún no hay intentos de examen registrados.</p>
+    </div>
+  </div>
+
+  <!-- Row 2: Intentos + Lecciones -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Resultados del examen</h3>
+      <div class="stat-grid" id="intentos-stats"></div>
+    </div>
+    <div class="chart-card">
+      <h3>Avance en lecciones <span id="lec-sub" style="font-weight:400;"></span></h3>
+      <div id="lecciones-chart" class="bar-chart"></div>
+      <p id="lec-promedio" style="font-size:0.76rem;color:var(--muted);margin:0.8rem 0 0;"></p>
+    </div>
+  </div>
+
+  <!-- Desglose por pista (solo LA/FT) -->
+  <div class="chart-card full" id="pista-card" hidden>
+    <h3>Desglose por pista — LA/FT</h3>
+    <div class="pista-grid">
+      <div>
+        <p class="pista-col-title" style="color:var(--laft);">Negocios</p>
+        <div id="pista-neg" class="bar-chart"></div>
+      </div>
+      <div>
+        <p class="pista-col-title" style="color:var(--laft);">Administrativo</p>
+        <div id="pista-adm" class="bar-chart"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const COLORES = {
+  sin_iniciar:          '#94a3b8',
+  pendiente:            '#64748b',
+  en_progreso:          '#3b82f6',
+  evaluacion_pendiente: '#f59e0b',
+  aprobado:             '#22c55e',
+  reprobado:            '#ef4444',
+  vencido:              '#f97316',
+};
+const ETIQUETAS = {
+  sin_iniciar:          'Sin iniciar',
+  pendiente:            'Pendiente (0 lecciones)',
+  en_progreso:          'En progreso',
+  evaluacion_pendiente: 'Evaluación pendiente',
+  aprobado:             'Aprobado',
+  reprobado:            'Reprobado',
+  vencido:              'Vencido',
+};
+const ORDEN_ESTADOS = ['aprobado','evaluacion_pendiente','en_progreso','pendiente','sin_iniciar','reprobado','vencido'];
+
+const params = new URLSearchParams(location.search);
+const modulo  = params.get('modulo') === 'laft' ? 'laft' : 'riesgos';
+const LABEL   = modulo === 'riesgos' ? 'Gestión de Riesgos' : 'Prevención de LA/FT';
+const KICKER  = modulo === 'riesgos' ? 'Módulo 1' : 'Módulo 2 · Cumplimiento';
+const ACCENT  = modulo === 'riesgos' ? 'var(--riesgo,#7c3aed)' : 'var(--laft,#0f766e)';
+
+document.title = `Dashboard ${LABEL} — ACACES`;
+document.getElementById('dash-kicker').textContent = KICKER;
+document.getElementById('dash-title').textContent  = `Dashboard · ${LABEL}`;
+document.getElementById('dash-fecha').textContent  = new Date().toLocaleDateString('es-SV',{day:'numeric',month:'long',year:'numeric'});
+
+/* ── helpers ── */
+function pct(n, t) { return t ? Math.round(n / t * 100) : 0; }
+
+function barRow(label, count, maxCount, color) {
+  const w      = maxCount > 0 ? Math.round(count / maxCount * 100) : 0;
+  const inside = w >= 22 && count > 0;
+  return `
+    <div class="bar-row">
+      <span class="bar-label">${label}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${w}%;background:${color};">
+          ${inside ? `<span class="bar-count-in">${count}</span>` : ''}
+        </div>
+        ${!inside ? `<span class="bar-count-out">${count}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+/* ── KPIs ── */
+function renderKPIs(d) {
+  const aprobados  = d.estados.aprobado || 0;
+  const enProg     = (d.estados.en_progreso || 0) + (d.estados.evaluacion_pendiente || 0);
+  const sinIniciar = d.estados.sin_iniciar || 0;
+  const reprobVenc = (d.estados.reprobado || 0) + (d.estados.vencido || 0);
+  const t          = d.totalEmpleados;
+
+  const kpis = [
+    { v: t,                 l: 'Total empleados',                     c: ACCENT },
+    { v: aprobados,         l: `Aprobados · ${pct(aprobados,t)}%`,    c: '#22c55e' },
+    { v: enProg,            l: `En progreso · ${pct(enProg,t)}%`,     c: '#3b82f6' },
+    { v: sinIniciar,        l: `Sin iniciar · ${pct(sinIniciar,t)}%`, c: '#94a3b8' },
+    { v: reprobVenc,        l: `Reprobados/Vencidos`,                  c: '#ef4444' },
+    { v: d.notaPromedio != null ? d.notaPromedio + '%' : '—',
+                            l: 'Nota promedio examen',                 c: '#f59e0b' },
+  ];
+  document.getElementById('kpi-strip').innerHTML = kpis.map(k =>
+    `<div class="kpi-box" style="border-top-color:${k.c}">
+       <div class="kv" style="color:${k.c}">${k.v}</div>
+       <div class="kl">${k.l}</div>
+     </div>`
+  ).join('');
+}
+
+/* ── Donut ── */
+function renderDonut(estados) {
+  const segs = ORDEN_ESTADOS
+    .filter(k => estados[k] > 0)
+    .map(k => ({ label: ETIQUETAS[k], color: COLORES[k], count: estados[k] }));
+  const total = segs.reduce((s, seg) => s + seg.count, 0);
+  if (!total) return;
+
+  const R = 60, CX = 80, CY = 80, SW = 28;
+  const C = 2 * Math.PI * R;
+  const GAP = 3;
+
+  let html = `<circle r="${R}" cx="${CX}" cy="${CY}" fill="none" stroke="var(--surface-2,#f1f5f9)" stroke-width="${SW}"/>`;
+  let cum = 0;
+  segs.forEach(seg => {
+    const len = Math.max(0, (seg.count / total) * C - GAP);
+    html += `<circle r="${R}" cx="${CX}" cy="${CY}" fill="none" stroke="${seg.color}"
+      stroke-width="${SW}" stroke-dasharray="${len} ${C}"
+      stroke-dashoffset="${-cum}" transform="rotate(-90 ${CX} ${CY})"/>`;
+    cum += (seg.count / total) * C;
+  });
+  html += `<text x="${CX}" y="${CY - 5}" text-anchor="middle" font-size="22" font-weight="700" fill="var(--ink,#1e293b)">${total}</text>`;
+  html += `<text x="${CX}" y="${CY + 13}" text-anchor="middle" font-size="10" fill="var(--muted,#64748b)">empleados</text>`;
+  document.getElementById('donut-svg').innerHTML = html;
+
+  document.getElementById('donut-legend').innerHTML = segs.map(seg =>
+    `<div class="leg-row">
+       <span class="leg-dot" style="background:${seg.color}"></span>
+       <span>${seg.label}</span>
+       <span class="leg-pct">${seg.count} · ${pct(seg.count, total)}%</span>
+     </div>`
+  ).join('');
+}
+
+/* ── Notas ── */
+function renderNotas(distNotas) {
+  const total = distNotas.reduce((s, r) => s + r.count, 0);
+  if (!total) { document.getElementById('notas-empty').hidden = false; return; }
+  const max = Math.max(...distNotas.map(r => r.count));
+  document.getElementById('notas-chart').innerHTML =
+    distNotas.map(r => barRow(r.rango, r.count, max, r.color)).join('') +
+    `<p style="font-size:0.72rem;color:var(--muted);margin:0.8rem 0 0;">
+       Total de intentos registrados: <strong>${total}</strong> · Nota de aprobación: 70%
+     </p>`;
+}
+
+/* ── Intentos ── */
+function renderIntentos(d) {
+  const { uniquePresent, aprobados1, aprobados2, reprobados1Solo, reprobadosFinal } = d.examen;
+  const noPresent = d.totalEmpleados - uniquePresent;
+  const tiles = [
+    { n: uniquePresent,  t: 'Han presentado',                c: '#3b82f6' },
+    { n: aprobados1,     t: 'Aprobados — 1er intento',       c: '#22c55e' },
+    { n: aprobados2,     t: 'Aprobados — 2do intento',       c: '#15803d' },
+    { n: reprobados1Solo,t: 'Reprobaron 1er (1 restante)',   c: '#f59e0b' },
+    { n: reprobadosFinal,t: 'Reprobados (agotaron intentos)',c: '#ef4444' },
+    { n: noPresent,      t: 'No han presentado',             c: '#94a3b8' },
+  ];
+  document.getElementById('intentos-stats').innerHTML = tiles.map(t =>
+    `<div class="stat-tile">
+       <div class="sn" style="color:${t.c}">${t.n}</div>
+       <div class="st">${t.t}</div>
+     </div>`
+  ).join('');
+}
+
+/* ── Lecciones ── */
+function renderLecciones(lec) {
+  const { promedio, total, distribucion } = lec;
+  document.getElementById('lec-sub').textContent = `(personas con inscripción)`;
+  const data = [];
+  for (let i = 0; i <= total; i++) data.push({ i, count: distribucion[i] || 0 });
+  const max = Math.max(...data.map(d => d.count), 1);
+  document.getElementById('lecciones-chart').innerHTML =
+    data.map(d => barRow(
+      d.i === total ? `${d.i} ✓` : String(d.i),
+      d.count, max,
+      d.i === total ? '#22c55e' : '#3b82f6'
+    )).join('');
+  document.getElementById('lec-promedio').textContent = `Promedio: ${promedio} de ${total} lecciones completadas`;
+}
+
+/* ── Pista breakdown (laft) ── */
+function renderPista(containerId, estadoMap) {
+  const segs = ORDEN_ESTADOS.filter(k => estadoMap[k] > 0).map(k => ({ label: ETIQUETAS[k], color: COLORES[k], count: estadoMap[k] }));
+  const max = Math.max(...segs.map(s => s.count), 1);
+  document.getElementById(containerId).innerHTML = segs.length
+    ? segs.map(s => barRow(s.label, s.count, max, s.color)).join('')
+    : '<p style="color:var(--muted);font-size:0.82rem;">Sin datos.</p>';
+}
+
+/* ── Main ── */
+async function load() {
+  try {
+    const res = await fetch(`/api/admin/dashboard?modulo=${modulo}`);
+    if (res.status === 401) { location.href = '/login.html'; return; }
+    if (!res.ok) throw new Error(res.status);
+    const d = await res.json();
+
+    document.getElementById('loading-wrap').hidden = true;
+    document.getElementById('dash').hidden = false;
+
+    renderKPIs(d);
+    renderDonut(d.estados);
+    renderNotas(d.examen.distNotas);
+    renderIntentos(d);
+    renderLecciones(d.lecciones);
+
+    if (modulo === 'laft' && d.pistaBreakdown) {
+      document.getElementById('pista-card').hidden = false;
+      renderPista('pista-neg', d.pistaBreakdown.negocios);
+      renderPista('pista-adm', d.pistaBreakdown.administrativo);
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('loading-wrap').querySelector('p').textContent =
+      'Error al cargar los datos. Verifica que tienes acceso de administrador.';
+  }
+}
+
+load();
+</script>
+</body>
+</html>

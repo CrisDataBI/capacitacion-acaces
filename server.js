@@ -445,6 +445,105 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
 });
 
 /* ============================================================
+   Dashboard de analytics (admin)
+   ============================================================ */
+app.get('/api/admin/dashboard', auth.requireAdmin, async (req, res) => {
+  const modulo = req.query.modulo === 'laft' ? 'laft' : 'riesgos';
+  const totalLec = modulo === 'riesgos' ? 7 : 10;
+  try {
+    // 1. Distribución por estado (left join todos los empleados)
+    const qEstados = modulo === 'riesgos'
+      ? `SELECT COALESCE(i.estado,'sin_iniciar') as estado, count(*)::int as n
+         FROM usuarios u
+         LEFT JOIN ediciones e ON e.modulo='riesgos' AND e.anio=2026
+         LEFT JOIN inscripciones i ON i.usuario_id=u.id AND i.edicion_id=e.id
+         WHERE u.rol='empleado' AND u.activo=true GROUP BY 1`
+      : `SELECT COALESCE(il.estado,'sin_iniciar') as estado, count(*)::int as n
+         FROM usuarios u
+         LEFT JOIN ediciones el ON el.modulo='laft' AND el.anio=2026 AND el.segmento_objetivo=u.segmento
+         LEFT JOIN inscripciones il ON il.usuario_id=u.id AND il.edicion_id=el.id
+         WHERE u.rol='empleado' AND u.activo=true AND u.segmento IS NOT NULL GROUP BY 1`;
+    const { rows: estadosR } = await db.query(qEstados);
+    const estados = Object.fromEntries(estadosR.map(r => [r.estado, r.n]));
+    const totalEmpleados = Object.values(estados).reduce((s, n) => s + n, 0);
+
+    // 2. Intentos de examen (con inscripcion_id para conteo por persona)
+    const { rows: intentosR } = await db.query(`
+      SELECT ie.inscripcion_id, ie.numero_intento, ie.calificacion::int as cal, ie.aprobado
+      FROM intentos_examen ie
+      JOIN inscripciones i ON ie.inscripcion_id=i.id
+      JOIN ediciones e ON i.edicion_id=e.id
+      WHERE e.modulo=$1 AND e.anio=2026
+    `, [modulo]);
+
+    const todasNotas = intentosR.map(r => r.cal);
+    const notaPromedio = todasNotas.length
+      ? Math.round(todasNotas.reduce((s, n) => s + n, 0) / todasNotas.length) : null;
+    const distNotas = [
+      { rango: '0–59',   color: '#dc2626', count: todasNotas.filter(n => n < 60).length },
+      { rango: '60–69',  color: '#f97316', count: todasNotas.filter(n => n >= 60 && n < 70).length },
+      { rango: '70–79',  color: '#84cc16', count: todasNotas.filter(n => n >= 70 && n < 80).length },
+      { rango: '80–89',  color: '#22c55e', count: todasNotas.filter(n => n >= 80 && n < 90).length },
+      { rango: '90–100', color: '#15803d', count: todasNotas.filter(n => n >= 90).length },
+    ];
+    const uniquePresent = new Set(intentosR.map(r => r.inscripcion_id)).size;
+    const aprobados1 = intentosR.filter(r => r.numero_intento === 1 && r.aprobado).length;
+    const aprobados2 = intentosR.filter(r => r.numero_intento === 2 && r.aprobado).length;
+    const ids2nd = new Set(intentosR.filter(r => r.numero_intento === 2).map(r => r.inscripcion_id));
+    const reprobadosFinal = intentosR.filter(r => r.numero_intento === 2 && !r.aprobado).length;
+    const reprobados1Solo = intentosR.filter(r => r.numero_intento === 1 && !r.aprobado && !ids2nd.has(r.inscripcion_id)).length;
+
+    // 3. Distribución de lecciones completadas (solo empleados con inscripción)
+    const qLec = modulo === 'riesgos'
+      ? `SELECT count(pl.id)::int as c
+         FROM usuarios u
+         JOIN ediciones e ON e.modulo='riesgos' AND e.anio=2026
+         JOIN inscripciones i ON i.usuario_id=u.id AND i.edicion_id=e.id
+         LEFT JOIN progreso_leccion pl ON pl.inscripcion_id=i.id
+         WHERE u.rol='empleado' AND u.activo=true GROUP BY i.id`
+      : `SELECT count(pl.id)::int as c
+         FROM usuarios u
+         JOIN ediciones el ON el.modulo='laft' AND el.anio=2026 AND el.segmento_objetivo=u.segmento
+         JOIN inscripciones il ON il.usuario_id=u.id AND il.edicion_id=el.id
+         LEFT JOIN progreso_leccion pl ON pl.inscripcion_id=il.id
+         WHERE u.rol='empleado' AND u.activo=true GROUP BY il.id`;
+    const { rows: lecR } = await db.query(qLec);
+    const lecArr = lecR.map(r => r.c);
+    const promLec = lecArr.length
+      ? (lecArr.reduce((s, n) => s + n, 0) / lecArr.length).toFixed(1) : '0.0';
+    const distLec = {};
+    for (const c of lecArr) distLec[c] = (distLec[c] || 0) + 1;
+
+    // 4. Desglose por pista (solo laft)
+    let pistaBreakdown = null;
+    if (modulo === 'laft') {
+      const { rows: pistaR } = await db.query(`
+        SELECT u.segmento, COALESCE(il.estado,'sin_iniciar') as estado, count(*)::int as n
+        FROM usuarios u
+        LEFT JOIN ediciones el ON el.modulo='laft' AND el.anio=2026 AND el.segmento_objetivo=u.segmento
+        LEFT JOIN inscripciones il ON il.usuario_id=u.id AND il.edicion_id=el.id
+        WHERE u.rol='empleado' AND u.activo=true AND u.segmento IS NOT NULL
+        GROUP BY 1,2
+      `);
+      pistaBreakdown = { negocios: {}, administrativo: {} };
+      for (const r of pistaR) {
+        if (r.segmento && pistaBreakdown[r.segmento]) pistaBreakdown[r.segmento][r.estado] = r.n;
+      }
+    }
+
+    res.json({
+      modulo, totalEmpleados, estados, notaPromedio,
+      examen: { uniquePresent, aprobados1, aprobados2, reprobados1Solo, reprobadosFinal, distNotas },
+      lecciones: { promedio: promLec, total: totalLec, distribucion: distLec },
+      pistaBreakdown,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+/* ============================================================
    Paginas estaticas + proteccion de rutas
    ============================================================ */
 
