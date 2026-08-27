@@ -310,8 +310,14 @@ app.get('/api/admin/usuarios', auth.requireAdmin, async (req, res) => {
       select u.id, u.nombre, u.cargo, u.area, u.correo, u.usuario, u.activo, u.segmento,
              i.estado, i.fecha_inscripcion, i.fecha_limite,
              coalesce((select count(*) from progreso_leccion pl where pl.inscripcion_id = i.id), 0) as lecciones_completadas,
+             (select max(calificacion) from intentos_examen ie where ie.inscripcion_id = i.id) as riesgos_nota,
+             (select count(*) from intentos_examen ie where ie.inscripcion_id = i.id) as riesgos_intentos,
+             (select bool_or(aprobado) from intentos_examen ie where ie.inscripcion_id = i.id) as riesgos_aprobado,
              il.estado as laft_estado, il.fecha_limite as laft_fecha_limite,
-             coalesce((select count(*) from progreso_leccion pl2 where pl2.inscripcion_id = il.id), 0) as laft_lecciones_completadas
+             coalesce((select count(*) from progreso_leccion pl2 where pl2.inscripcion_id = il.id), 0) as laft_lecciones_completadas,
+             (select max(calificacion) from intentos_examen ie where ie.inscripcion_id = il.id) as laft_nota,
+             (select count(*) from intentos_examen ie where ie.inscripcion_id = il.id) as laft_intentos,
+             (select bool_or(aprobado) from intentos_examen ie where ie.inscripcion_id = il.id) as laft_aprobado
       from usuarios u
       left join ediciones e on e.modulo = 'riesgos' and e.anio = 2026
       left join inscripciones i on i.usuario_id = u.id and i.edicion_id = e.id
@@ -389,8 +395,14 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
       select u.nombre, u.cargo, u.area, u.correo, u.usuario, u.segmento,
              i.estado, i.fecha_inscripcion, i.fecha_limite,
              coalesce((select count(*) from progreso_leccion pl where pl.inscripcion_id = i.id), 0) as lecciones_completadas,
+             (select max(calificacion) from intentos_examen ie where ie.inscripcion_id = i.id) as riesgos_nota,
+             (select count(*) from intentos_examen ie where ie.inscripcion_id = i.id) as riesgos_intentos,
+             (select bool_or(aprobado) from intentos_examen ie where ie.inscripcion_id = i.id) as riesgos_aprobado,
              il.estado as laft_estado, il.fecha_limite as laft_fecha_limite,
-             coalesce((select count(*) from progreso_leccion pl2 where pl2.inscripcion_id = il.id), 0) as laft_lecciones_completadas
+             coalesce((select count(*) from progreso_leccion pl2 where pl2.inscripcion_id = il.id), 0) as laft_lecciones_completadas,
+             (select max(calificacion) from intentos_examen ie where ie.inscripcion_id = il.id) as laft_nota,
+             (select count(*) from intentos_examen ie where ie.inscripcion_id = il.id) as laft_intentos,
+             (select bool_or(aprobado) from intentos_examen ie where ie.inscripcion_id = il.id) as laft_aprobado
       from usuarios u
       left join ediciones e on e.modulo = 'riesgos' and e.anio = 2026
       left join inscripciones i on i.usuario_id = u.id and i.edicion_id = e.id
@@ -402,7 +414,9 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
     const header = [
       'Nombre', 'Cargo', 'Área', 'Correo', 'Usuario', 'Segmento',
       'Estado Riesgos', 'Fecha inscripción Riesgos', 'Fecha límite Riesgos', 'Lecciones Riesgos (de 7)',
+      'Nota Riesgos (%)', 'Intentos Riesgos', 'Aprobó Riesgos',
       'Estado LA/FT', 'Fecha límite LA/FT', 'Lecciones LA/FT (de 10)',
+      'Nota LA/FT (%)', 'Intentos LA/FT', 'Aprobó LA/FT',
     ];
     const body = rows.map((r) => [
       r.nombre, r.cargo, r.area, r.correo, r.usuario, r.segmento || '',
@@ -410,9 +424,15 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
       r.fecha_inscripcion ? new Date(r.fecha_inscripcion).toLocaleDateString('es-SV') : '',
       r.fecha_limite ? new Date(r.fecha_limite).toLocaleDateString('es-SV') : '',
       r.lecciones_completadas || 0,
+      r.riesgos_nota != null ? r.riesgos_nota : '',
+      r.riesgos_intentos || 0,
+      r.riesgos_aprobado ? 'Sí' : (r.riesgos_intentos > 0 ? 'No' : ''),
       r.laft_estado || 'pendiente',
       r.laft_fecha_limite ? new Date(r.laft_fecha_limite).toLocaleDateString('es-SV') : '',
       r.laft_lecciones_completadas || 0,
+      r.laft_nota != null ? r.laft_nota : '',
+      r.laft_intentos || 0,
+      r.laft_aprobado ? 'Sí' : (r.laft_intentos > 0 ? 'No' : ''),
     ]);
     const csv = toCSV(header, body);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');

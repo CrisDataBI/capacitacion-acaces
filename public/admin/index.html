@@ -54,10 +54,10 @@
     <div class="table-wrap">
       <table class="roster">
         <thead>
-          <tr><th>Nombre</th><th>Cargo</th><th>Área</th><th>Segmento</th><th>Riesgos</th><th>LA/FT</th></tr>
+          <tr><th>Nombre</th><th>Cargo</th><th>Área</th><th>Segmento</th><th>Riesgos · lecciones</th><th>Nota Riesgos</th><th>LA/FT · lecciones</th><th>Nota LA/FT</th></tr>
         </thead>
         <tbody id="roster-body">
-          <tr><td colspan="6" style="color:var(--muted);">Cargando…</td></tr>
+          <tr><td colspan="8" style="color:var(--muted);">Cargando…</td></tr>
         </tbody>
       </table>
     </div>
@@ -99,16 +99,23 @@ Ana López,Ejecutiva de Negocios,Negocios Olimpica,ana.lopez@acaces.com.sv,,nego
         const tr = document.createElement('tr');
         const segmentoLabel = u.segmento ? (u.segmento === 'negocios' ? 'Negocios' : 'Administrativo') : 'Sin asignar';
         const laftEstado = u.segmento ? (u.laft_estado || 'sin iniciar') : null;
-        const laftCell = u.segmento
+        const laftLecCell = u.segmento
           ? `<span class="pill ${laftEstado === 'aprobado' ? 'good' : laftEstado === 'vencido' ? 'bad' : 'neutral'}">${laftEstado.replace('_',' ')}</span> ${u.laft_lecciones_completadas}/10`
           : `<span class="pill bad">Sin pista</span>`;
+        const fmtNota = (nota, intentos, aprobado) => {
+          if (nota == null) return '<span style="color:var(--muted);">—</span>';
+          const color = aprobado ? 'var(--good)' : 'var(--bad)';
+          return `<strong style="color:${color}">${nota}%</strong> <span style="color:var(--muted);font-size:0.78rem;">(${intentos} intento${intentos !== 1 ? 's' : ''})</span>`;
+        };
         tr.innerHTML = `<td>${u.nombre}</td><td>${u.cargo || ''}</td><td>${u.area || ''}</td>
           <td><span class="pill ${u.segmento ? 'neutral' : 'bad'}">${segmentoLabel}</span></td>
           <td><span class="pill ${estado === 'aprobado' ? 'good' : estado === 'vencido' ? 'bad' : 'neutral'}">${estado.replace('_',' ')}</span> ${u.lecciones_completadas}/7</td>
-          <td>${laftCell}</td>`;
+          <td>${fmtNota(u.riesgos_nota, u.riesgos_intentos, u.riesgos_aprobado)}</td>
+          <td>${laftLecCell}</td>
+          <td>${fmtNota(u.laft_nota, u.laft_intentos, u.laft_aprobado)}</td>`;
         body.appendChild(tr);
       });
-      if (!usuarios.length) body.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">Aún no hay empleados importados.</td></tr>';
+      if (!usuarios.length) body.innerHTML = '<tr><td colspan="8" style="color:var(--muted);">Aún no hay empleados importados.</td></tr>';
 
       document.getElementById('kpi-total').textContent = counts.total;
       document.getElementById('kpi-progreso').textContent = counts.en_progreso;
