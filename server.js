@@ -323,7 +323,7 @@ app.get('/api/admin/usuarios', auth.requireAdmin, async (req, res) => {
       left join inscripciones i on i.usuario_id = u.id and i.edicion_id = e.id
       left join ediciones el on el.modulo = 'laft' and el.anio = 2026 and el.segmento_objetivo = u.segmento
       left join inscripciones il on il.usuario_id = u.id and il.edicion_id = el.id
-      where u.rol = 'empleado'
+      where u.rol in ('empleado', 'administrador')
       order by u.nombre
     `);
     res.json({ usuarios: rows });
@@ -408,7 +408,7 @@ app.get('/api/admin/reportes.csv', auth.requireAdmin, async (req, res) => {
       left join inscripciones i on i.usuario_id = u.id and i.edicion_id = e.id
       left join ediciones el on el.modulo = 'laft' and el.anio = 2026 and el.segmento_objetivo = u.segmento
       left join inscripciones il on il.usuario_id = u.id and il.edicion_id = el.id
-      where u.rol = 'empleado'
+      where u.rol in ('empleado', 'administrador')
       order by u.nombre
     `);
     const header = [
