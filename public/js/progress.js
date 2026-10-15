@@ -9,7 +9,11 @@
     if (!topbar) return;
     const box = document.createElement('div');
     box.style.cssText = 'display:flex; align-items:center; gap:0.8rem; font-family:var(--font-mono); font-size:0.78rem; color:rgba(255,255,255,0.85); position:relative; z-index:1;';
+    const adminBtn = me && me.rol === 'administrador'
+      ? '<a href="/admin/index.html" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.45);border-radius:6px;padding:0.3rem 0.7rem;font:inherit;color:#fff;text-decoration:none;">Panel Admin</a>'
+      : '';
     box.innerHTML = `<span>${me ? 'Hola, ' + me.nombre.split(' ')[0] : ''}</span>` +
+      adminBtn +
       '<button type="button" id="acaces-logout" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.35);border-radius:6px;padding:0.3rem 0.7rem;cursor:pointer;font:inherit;color:#fff;">Salir</button>';
     topbar.appendChild(box);
     document.getElementById('acaces-logout').addEventListener('click', async () => {
